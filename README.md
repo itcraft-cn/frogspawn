@@ -109,11 +109,7 @@ release(pojo);
 
 另有文档说，`@Contended` 注解需要 `JVM` 开启参数 `-XX:-RestrictContended` 。
 
-## 对比测试结果
-
-[与其他库对比](compare.md)
-
 ## 更新记录
 
-- v0.2: 添加自动填充模式：一个线程从池里消费，一个线程返还到池里的场景，可以使用此模式。
-- v0.1: 首次发布
+[ChangeLog](ChangeLog.md)
+
