@@ -18,21 +18,44 @@ package cn.itcraft.frogeggs.impl;
 
 import cn.itcraft.frogeggs.ObjectCreator;
 import cn.itcraft.frogeggs.Resettable;
+import cn.itcraft.frogeggs.constants.Constants;
+import cn.itcraft.frogeggs.misc.SoftRefStore;
 
 /**
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:34 PM
  */
-public class CachedLoopObjectsMemoryPoolImpl<T extends Resettable> extends AbstractCachedObjectsMemoryPool<T> {
+public abstract class AbstractPrefetchPoolImpl<T extends Resettable> extends AbstractCachedPool<T> {
 
-    public CachedLoopObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size) {
+    public AbstractPrefetchPoolImpl(ObjectCreator<T> creator, int size) {
         super(creator, size);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected T fetchData() {
-        return FetchHelper.loopFetchData(array, indexMask, walker);
+    public T fetch() {
+        SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
+        T t = (T) softRefStore.fetch();
+        if (t == null) {
+            t = fetchData();
+            prefetch(softRefStore);
+        }
+        return t;
+    }
+
+    private void prefetch(SoftRefStore<Resettable> softRefStore) {
+        if (softRefStore.isEmpty()) {
+            for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
+                softRefStore.release(fetchData());
+            }
+        }
+    }
+
+    @Override
+    public void release(T used) {
+        used.reset();
+        wrapRelease(used);
     }
 
 }

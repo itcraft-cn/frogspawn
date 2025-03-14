@@ -18,28 +18,21 @@ package cn.itcraft.frogeggs.impl;
 
 import cn.itcraft.frogeggs.ObjectCreator;
 import cn.itcraft.frogeggs.Resettable;
-import cn.itcraft.frogeggs.strategy.FetchFailStrategy;
-import cn.itcraft.frogeggs.strategy.PoolStrategy;
 
 /**
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:34 PM
  */
-public class AutofillCachedObjectsMemoryPoolImpl<T extends Resettable> extends AbstractAutofillCachedObjectsMemoryPoolImpl<T> {
+public class CachedLoopPoolImpl<T extends Resettable> extends AbstractCachedPool<T> {
 
-    private final ObjectCreator<T> creator;
-    private final FetchFailStrategy fetchFailStrategy;
-
-    public AutofillCachedObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
+    public CachedLoopPoolImpl(ObjectCreator<T> creator, int size) {
         super(creator, size);
-        this.creator = creator;
-        this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
     }
 
     @Override
     protected T fetchData() {
-        return FetchHelper.fetchDataOrFailover(array, indexMask, walker, fetchFailStrategy, creator);
+        return FetchHelper.loopFetchData(array, indexMask, walker);
     }
 
 }

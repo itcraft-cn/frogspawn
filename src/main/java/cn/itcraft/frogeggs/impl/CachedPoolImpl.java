@@ -18,44 +18,28 @@ package cn.itcraft.frogeggs.impl;
 
 import cn.itcraft.frogeggs.ObjectCreator;
 import cn.itcraft.frogeggs.Resettable;
-import cn.itcraft.frogeggs.constants.Constants;
-import cn.itcraft.frogeggs.misc.SoftRefStore;
+import cn.itcraft.frogeggs.strategy.FetchFailStrategy;
+import cn.itcraft.frogeggs.strategy.PoolStrategy;
 
 /**
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:34 PM
  */
-public abstract class AbstractAutofillCachedObjectsMemoryPoolImpl<T extends Resettable> extends AbstractCachedObjectsMemoryPool<T> {
+public class CachedPoolImpl<T extends Resettable> extends AbstractCachedPool<T> {
 
-    public AbstractAutofillCachedObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size) {
+    private final ObjectCreator<T> creator;
+    private final FetchFailStrategy fetchFailStrategy;
+
+    public CachedPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         super(creator, size);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public T fetch() {
-        SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
-        T t = (T) softRefStore.fetch();
-        if (t == null) {
-            t = fetchData();
-            fillRefStore(softRefStore);
-        }
-        return t;
-    }
-
-    private void fillRefStore(SoftRefStore<Resettable> softRefStore) {
-        if (softRefStore.isEmpty()) {
-            for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
-                softRefStore.release(fetchData());
-            }
-        }
+        this.creator = creator;
+        this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
     }
 
     @Override
-    public void release(T used) {
-        used.reset();
-        wrapRelease(used);
+    protected T fetchData() {
+        return FetchHelper.fetchDataOrFailover(array, indexMask, walker, fetchFailStrategy, creator);
     }
 
 }

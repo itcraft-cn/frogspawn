@@ -17,9 +17,9 @@
 package cn.itcraft.frogeggs.sample.serial;
 
 import cn.itcraft.frogeggs.ObjectCreator;
-import cn.itcraft.frogeggs.impl.CachedLoopObjectsMemoryPoolImpl;
 import cn.itcraft.frogeggs.ObjectsMemoryPool;
 import cn.itcraft.frogeggs.Resettable;
+import cn.itcraft.frogeggs.impl.CachedLoopPoolImpl;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtobufIOUtil;
 import io.protostuff.Schema;
@@ -58,7 +58,7 @@ public class SerializerWithObjectPool {
         if (!SCHEMA_MAP.containsKey(key)) {
             SCHEMA_MAP.put(key, RuntimeSchema.getSchema(clazz));
             POOL_MAP.put(key,
-                         new CachedLoopObjectsMemoryPoolImpl<>(creator, 3000));
+                         new CachedLoopPoolImpl<>(creator, 3000));
         }
     }
 

@@ -16,11 +16,11 @@
  */
 package cn.itcraft.frogeggs;
 
-import cn.itcraft.frogeggs.impl.AutofillCachedObjectsMemoryPoolImpl;
-import cn.itcraft.frogeggs.impl.CachedLoopObjectsMemoryPoolImpl;
-import cn.itcraft.frogeggs.impl.CachedObjectsMemoryPoolImpl;
+import cn.itcraft.frogeggs.impl.CachedLoopPoolImpl;
+import cn.itcraft.frogeggs.impl.CachedPoolImpl;
+import cn.itcraft.frogeggs.impl.PrefetchLoopPoolImpl;
+import cn.itcraft.frogeggs.impl.PrefetchPoolImpl;
 import cn.itcraft.frogeggs.strategy.PoolStrategy;
-import cn.itcraft.frogeggs.impl.AutofillCachedLoopObjectsMemoryPoolImpl;
 
 /**
  * @author Helly Guo
@@ -44,27 +44,27 @@ public final class ObjectsMemoryPoolFactory {
     public static <T extends Resettable> ObjectsMemoryPool<T> newPool(ObjectCreator<T> creator, int size,
                                                                       PoolStrategy poolStrategy, boolean autofill) {
         if (autofill) {
-            return newAutofillPool(creator, size, poolStrategy);
+            return newPrefetchPool(creator, size, poolStrategy);
         } else {
             return newNormalPool(creator, size, poolStrategy);
         }
     }
 
-    private static <T extends Resettable> ObjectsMemoryPool<T> newAutofillPool(ObjectCreator<T> creator, int size,
+    private static <T extends Resettable> ObjectsMemoryPool<T> newPrefetchPool(ObjectCreator<T> creator, int size,
                                                                                PoolStrategy poolStrategy) {
         if (PoolStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy)) {
-            return new AutofillCachedLoopObjectsMemoryPoolImpl<>(creator, size);
+            return new PrefetchLoopPoolImpl<>(creator, size);
         } else {
-            return new AutofillCachedObjectsMemoryPoolImpl<>(creator, size, poolStrategy);
+            return new PrefetchPoolImpl<>(creator, size, poolStrategy);
         }
     }
 
     private static <T extends Resettable> ObjectsMemoryPool<T> newNormalPool(ObjectCreator<T> creator, int size,
                                                                              PoolStrategy poolStrategy) {
         if (PoolStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy)) {
-            return new CachedLoopObjectsMemoryPoolImpl<>(creator, size);
+            return new CachedLoopPoolImpl<>(creator, size);
         } else {
-            return new CachedObjectsMemoryPoolImpl<>(creator, size, poolStrategy);
+            return new CachedPoolImpl<>(creator, size, poolStrategy);
         }
     }
 

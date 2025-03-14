@@ -16,7 +16,7 @@
  */
 package cn.itcraft.frogeggs;
 
-import cn.itcraft.frogeggs.impl.CachedLoopObjectsMemoryPoolImpl;
+import cn.itcraft.frogeggs.impl.CachedLoopPoolImpl;
 import cn.itcraft.frogeggs.misc.MainHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ public class ObjectsMemoryPoolSample {
     private static final Logger LOGGER = LoggerFactory.getLogger(ObjectsMemoryPoolSample.class);
 
     private static final ObjectsMemoryPool<DemoPojo> POOL
-            = new CachedLoopObjectsMemoryPoolImpl<>(new DemoPojoCreator(), 3000);
+            = new CachedLoopPoolImpl<>(new DemoPojoCreator(), 3000);
     private static final int SIZE = 256;
     private static final int MASK = SIZE - 1;
 
