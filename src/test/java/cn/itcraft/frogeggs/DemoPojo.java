@@ -39,7 +39,7 @@ public class DemoPojo implements Resettable {
     }
 
     @Override
-    public int allocId() {
+    public int getMarkedId() {
         return allocId;
     }
 

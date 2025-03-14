@@ -75,7 +75,7 @@ public class SoftRefStore<T extends Resettable> {
 
     /**
      * @param obj obj
-     * @return true -  need to continue release; false - needless to continue release
+     * @return true - need to continue release; false - needless to continue release
      */
     public boolean release(T obj) {
         if (obj == null || size == INITIAL_CAPACITY) {

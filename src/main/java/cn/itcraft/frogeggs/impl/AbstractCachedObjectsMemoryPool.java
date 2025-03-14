@@ -86,7 +86,7 @@ public abstract class AbstractCachedObjectsMemoryPool<T extends Resettable> impl
 
     protected void wrapRelease(T used) {
         used.reset();
-        int id = used.allocId();
+        int id = used.getMarkedId();
         if (id >= 0) {
             array[id].getUsed().compareAndSet(true, false);
         }

@@ -29,11 +29,11 @@ public interface Resettable {
     void reset();
 
     /**
-     * 分配 ID，由 {@link #markId(int)} 注入，返回注入的值即可
+     * 返回分配 ID，由 {@link #markId(int)} 注入，返回注入的值即可
      *
      * @return 分配的 ID
      */
-    int allocId();
+    int getMarkedId();
 
     /**
      * 标记分配到的 ID，请存储在对象内
