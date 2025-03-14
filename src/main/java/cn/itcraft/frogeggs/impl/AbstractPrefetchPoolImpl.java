@@ -37,7 +37,7 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> extends Abs
     public T fetch() {
         SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
         T t = (T) softRefStore.fetch();
-        if (t == null) {
+        if (t == null || t.isInvalid()) {
             t = fetchData();
             prefetch(softRefStore);
         }

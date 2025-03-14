@@ -58,7 +58,8 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
         // 生成多于实际需要的数组，跳开数据，用以消除伪共享
         array = ArrayUtil.createArray(WrappedResettable.class, capacity);
         WrappedResettable<T> wrapped;
-        for (int i = ArrayUtil.BUFFER_PAD; i < ArrayUtil.BUFFER_PAD + capacity; i++) {
+        int paddedCapacity = ArrayUtil.BUFFER_PAD + capacity;
+        for (int i = ArrayUtil.BUFFER_PAD; i < paddedCapacity; i++) {
             wrapped = new WrappedResettable<>(creator.create());
             wrapped.getObj().markId(i);
             array[i] = wrapped;
@@ -69,7 +70,7 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
     @Override
     public T fetch() {
         T t = (T) LOCAL_QUEUE.get().fetch();
-        if (t == null) {
+        if (t == null || t.isInvalid()) {
             return fetchData();
         }
         return t;

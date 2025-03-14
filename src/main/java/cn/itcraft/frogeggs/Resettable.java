@@ -29,6 +29,13 @@ public interface Resettable {
     void reset();
 
     /**
+     * 是否有效
+     */
+    default boolean isInvalid() {
+        return false;
+    }
+
+    /**
      * 返回分配 ID，由 {@link #markId(int)} 注入，返回注入的值即可
      *
      * @return 分配的 ID
