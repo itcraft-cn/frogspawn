@@ -1,4 +1,4 @@
-# `frog-eggs` 青蛙卵
+# `frog-eggs` 蛙卵
 
 **期望**：
 
