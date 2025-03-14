@@ -6,7 +6,7 @@
 
     <groupId>cn.itcraft</groupId>
     <artifactId>frog-eggs</artifactId>
-    <version>0.3-dev</version>
+    <version>0.3</version>
 
     <dependencies>
         <!-- junit -->
