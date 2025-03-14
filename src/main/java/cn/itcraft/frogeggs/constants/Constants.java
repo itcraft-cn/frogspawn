@@ -33,7 +33,7 @@ public final class Constants {
      * 实际运行中最大循环取次数
      */
     public static final int FETCH_TIMES
-            = Integer.parseInt(System.getProperty("turtleeggs.fetch.times", DEFAULT_FETCH_TIMES));
+            = Integer.parseInt(System.getProperty("frogeggs.fetch.times", DEFAULT_FETCH_TIMES));
     /**
      * 最大容量，默认 65536*16
      */
@@ -42,7 +42,7 @@ public final class Constants {
      * 实际运行中最大容量
      */
     public static final int MAX_CAPACITY
-            = Integer.parseInt(System.getProperty("turtleeggs.max.capacity", DEFAULT_MAX_CAPACITY));
+            = Integer.parseInt(System.getProperty("frogeggs.max.capacity", DEFAULT_MAX_CAPACITY));
     /**
      * 默认缓存大小，默认 8，最大 64
      */
@@ -57,7 +57,7 @@ public final class Constants {
     public static final int CACHE_CAPACITY
             = Math.min(
             ArrayUtil.findNextPositivePowerOfTwo(
-                    Integer.parseInt(System.getProperty("turtleeggs.cache.capacity", DEFAULT_CACHE_CAPACITY))),
+                    Integer.parseInt(System.getProperty("frogeggs.cache.capacity", DEFAULT_CACHE_CAPACITY))),
             MAX_CACHE_CAPACITY);
 
     private Constants() {

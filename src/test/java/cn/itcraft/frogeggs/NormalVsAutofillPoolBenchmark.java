@@ -58,7 +58,7 @@ public class NormalVsAutofillPoolBenchmark {
                 .measurementIterations(10)
                 .measurementTime(TimeValue.seconds(1))
                 .timeUnit(TimeUnit.MICROSECONDS)
-                .jvmArgs("-Xmx4G", "-Xms4G", "-Xmn2G", "-Dturtleeggs.cache.capacity=64")
+                .jvmArgs("-Xmx4G", "-Xms4G", "-Xmn2G", "-Dfrogeggs.cache.capacity=64")
                 .build();
         new Runner(options).run();
     }

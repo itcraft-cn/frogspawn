@@ -17,5 +17,5 @@ import org.junit.platform.suite.api.Suite;
         SoftRefStoreTest.class,
         ArrayUtilTest.class
 })
-public class TurtleEggsSuite {
+public class FrogEggsSuite {
 }

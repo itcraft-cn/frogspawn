@@ -48,7 +48,7 @@ public class ObjectsMemoryPoolBenchmark {
                 .measurementIterations(10)
                 .measurementTime(TimeValue.seconds(1))
                 .timeUnit(TimeUnit.MICROSECONDS)
-                .jvmArgs("-Xmx4G", "-Xms4G", "-Xmn2G", "-Dturtleeggs.cache.capacity=64", "-XX:-RestrictContended")
+                .jvmArgs("-Xmx4G", "-Xms4G", "-Xmn2G", "-Dfrogeggs.cache.capacity=64", "-XX:-RestrictContended")
                 .addProfiler(GCProfiler.class)
                 //.addProfiler(StackProfiler.class)
                 //.addProfiler(CompilerProfiler.class)
