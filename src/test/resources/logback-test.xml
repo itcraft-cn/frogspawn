@@ -18,7 +18,7 @@
 
         <!-- 可让每天产生一个日志文件，最多 10 个，自动回滚 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/tmp/frog-eggs-test-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>/tmp/frogspawn-test-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>90</maxHistory>
         </rollingPolicy>
 

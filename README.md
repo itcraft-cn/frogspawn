@@ -1,4 +1,4 @@
-# `frog-eggs` 蛙卵
+# `frogspawn` 蛙卵
 
 **期望**：
 
@@ -14,7 +14,7 @@
 
 比如：接口序列化/反序列化时
 
-[SerializeCompareSample](src/test/java/cn/itcraft/frogeggs/sample/serial/SerializeCompareSample.java)
+[SerializeCompareSample](src/test/java/cn/itcraft/frogspawn/sample/serial/SerializeCompareSample.java)
 
 ## 使用方法
 
@@ -95,9 +95,9 @@ release(pojo);
 
 ## 可选参数
 
-- `-Dfrogeggs.fetch.times`，最大循环取次数，默认值：100
-- `-Dfrogeggs.max.capacity`，池最大容量，默认值：67108864，即 65536*1024
-- `-Dfrogeggs.cache.capacity`, 线程缓存容量, 默认值: 8，最大值: 64。 设置为 `1` 能获得最大性能。
+- `-Dfrogspawn.fetch.times`，最大循环取次数，默认值：100
+- `-Dfrogspawn.max.capacity`，池最大容量，默认值：67108864，即 65536*1024
+- `-Dfrogspawn.cache.capacity`, 线程缓存容量, 默认值: 8，最大值: 64。 设置为 `1` 能获得最大性能。
 
 ## 伪共享相关
 
