@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.itcraft</groupId>
-    <artifactId>frog-eggs</artifactId>
+    <artifactId>frogspawn</artifactId>
     <version>0.3-dev</version>
 
     <dependencies>
