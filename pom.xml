@@ -14,7 +14,7 @@
     <scm>
         <connection>scm:git:git://github.com/itcraft-cn/frogspawn.git</connection>
         <developerConnection>scm:git:ssh://github.com/itcraft-cn/frogspawn.git</developerConnection>
-        <url>https://itcraft.cn/frogspawn/</url>
+        <url>https://github.com/itcraft-cn/frogspawn/</url>
     </scm>
 
     <licenses>
