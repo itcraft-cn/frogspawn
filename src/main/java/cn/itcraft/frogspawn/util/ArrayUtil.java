@@ -70,7 +70,10 @@ public final class ArrayUtil {
     /**
      * 读取被包装元素
      *
-     * @param sequence id
+     * @param array    数组
+     * @param mask  数组掩码
+     * @param sequence 序列
+     * @param <T> 泛型
      * @return obj
      */
     @SuppressWarnings("unchecked")
@@ -81,7 +84,11 @@ public final class ArrayUtil {
     /**
      * 写入被包装元素
      *
-     * @param sequence id
+     * @param array    数组
+     * @param mask  数组掩码
+     * @param sequence 序列
+     * @param t 值
+     * @param <T> 泛型
      */
     public static <T> void fillElementAt(T[] array, int mask, long sequence, T t) {
         UNSAFE.putObject(array, locateInArray(sequence, mask), t);

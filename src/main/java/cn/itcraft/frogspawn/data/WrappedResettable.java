@@ -22,7 +22,7 @@ import cn.itcraft.frogspawn.misc.PaddedAtomicBoolean;
 /**
  * 包装数据
  *
- * @param <X>
+ * @param <X> 泛型，必须实现Resettable接口
  */
 public class WrappedResettable<X extends Resettable> {
     /**
