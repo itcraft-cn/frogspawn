@@ -7,6 +7,30 @@
     <artifactId>frogspawn</artifactId>
     <version>0.4</version>
 
+    <name>frogspawn</name>
+    <description>A java object pool, focus on gc-friendry/low-latency.</description>
+    <url>https://itcraft.cn/frogspawn/</url>
+
+    <scm>
+        <connection>scm:git:git://github.com/itcraft-cn/frogspawn.git</connection>
+        <developerConnection>scm:git:ssh://github.com/itcraft-cn/frogspawn.git</developerConnection>
+        <url>https://itcraft.cn/frogspawn/</url>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Helly Guo</name>
+            <email>hellyguo@foxmail.com</email>
+        </developer>
+    </developers>
+
     <dependencies>
         <!-- junit -->
         <dependency>
@@ -164,27 +188,5 @@
             </plugin>
         </plugins>
     </build>
-
-    <developers>
-        <developer>
-            <name>Helly Guo</name>
-            <email>hellyguo@foxmail.com</email>
-        </developer>
-    </developers>
-
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
-
-    <scm>
-        <connection>scm:git:git://github.com/itcraft-cn/frogspawn.git</connection>
-        <developerConnection>scm:git:ssh://github.com/itcraft-cn/frogspawn.git</developerConnection>
-        <url>https://itcraft.cn/frogspawn/</url>
-    </scm>
-
-    <url>https://itcraft.cn/frogspawn/</url>
 
 </project>
