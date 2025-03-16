@@ -30,6 +30,8 @@ public interface Resettable {
 
     /**
      * 是否有效
+     * 
+     * @return 是否有效
      */
     default boolean isInvalid() {
         return false;
