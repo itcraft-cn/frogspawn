@@ -23,19 +23,19 @@ import cn.itcraft.frogspawn.constants.Constants;
 import cn.itcraft.frogspawn.data.WrappedResettable;
 import cn.itcraft.frogspawn.misc.PaddedAtomicLong;
 import cn.itcraft.frogspawn.misc.SoftRefStore;
+import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import cn.itcraft.frogspawn.util.ArrayUtil;
 
 /**
- * 抽象预取池实现类，用于管理可复用对象的预取和缓存机制
- * Abstract prefetch pool implementation for managing object prefetching and caching of reusable objects
+ * 基于线程本地缓存和环形数组的抽象对象池实现
+ * Abstract object pool implementation based on thread-local cache and circular array
  *
- * @param <T> 泛型类型，需继承Resettable接口，表示可重置的对象
- *            Generic type that extends Resettable interface, representing resettable objects
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:34 PM
  */
-public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
+public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
 
     /**
      * 线程本地存储的软引用队列，用于快速对象存取
@@ -64,15 +64,30 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
     protected final int indexMask;
 
     /**
-     * 构造函数，初始化对象池
-     * Constructor for initializing the object pool
-     *
-     * @param creator 对象创建器，用于生成新的对象实例
-     *                Object creator for generating new instances
-     * @param size    对象池的初始容量
-     *                Initial capacity of the object pool
+     * 对象创建器，用于生成新的池对象实例
+     * <p>
+     * Object creator for generating new pool object instances
      */
-    public AbstractPrefetchPoolImpl(ObjectCreator<T> creator, int size) {
+    private final ObjectCreator<T> creator;
+
+    /**
+     * 数据获取失败时的处理策略
+     * <p>
+     * Strategy for handling data fetch failures
+     */
+    private final FetchFailStrategy fetchFailStrategy;
+
+    private final Fetcher<T> fetcher;
+    private final Releaser<T> releaser;
+
+    /**
+     * 构造方法，初始化对象池
+     * Constructor, initializes the object pool
+     *
+     * @param creator 对象创建器 / Object creator
+     * @param size    初始容量 / Initial capacity
+     */
+    public ObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         // 计算最接近的2的幂次方容量
         // Calculate nearest power of two capacity
         int calculatedCapacity = ArrayUtil.findNextPositivePowerOfTwo(size);
@@ -96,6 +111,42 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
             wrapped.getObj().markId(i);
             array[i] = wrapped;
         }
+        this.creator = creator;
+        if (poolStrategy.isPrefetch()) {
+            this.fetcher = this::fetchWithPrefetch;
+            this.releaser = this::releaseDirect;
+            this.fetchFailStrategy = null;
+        } else {
+            this.fetcher = this::fetchWithCache;
+            this.releaser = this::releaseLocalFirst;
+            this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
+        }
+    }
+
+    /**
+     * 从池中获取可用对象（核心方法）
+     * Fetch an available object from the pool (core method)
+     *
+     * @return 可复用的对象实例
+     * Reusable object instance
+     */
+    @Override
+    public T fetch() {
+        return fetcher.fetch();
+    }
+
+    /**
+     * 获取对象（优先从线程本地缓存获取）
+     * Fetch object (preferentially from thread-local cache)
+     */
+    @SuppressWarnings("unchecked")
+    private T fetchWithCache() {
+        T t = (T) LOCAL_QUEUE.get().fetch();
+        if (t == null || t.isInvalid()) {
+            // 缓存未命中时从主池获取 / Fetch from the main pool when cache missed
+            return fetchDataWithTimes();
+        }
+        return t;
     }
 
     /**
@@ -106,8 +157,7 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
      * Reusable object instance
      */
     @SuppressWarnings("unchecked")
-    @Override
-    public T fetch() {
+    private T fetchWithPrefetch() {
         // 获取线程本地软引用存储
         // Get thread-local soft reference store
         SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
@@ -121,7 +171,7 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
         if (t == null || t.isInvalid()) {
             // 从数据源获取新对象
             // Fetch new object from data source
-            t = fetchData();
+            t = fetchDataWithLoop();
 
             // 触发预取机制补充缓存
             // Trigger prefetch mechanism to replenish cache
@@ -131,10 +181,30 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
     }
 
     /**
-     * 抽象方法 - 从主池获取对象的具体实现
-     * Abstract method - concrete implementation for fetching from main pool
+     * 从主池获取对象的具体实现
+     * concrete implementation for fetching from main pool
      */
-    protected abstract T fetchData();
+    protected T fetchDataWithTimes() {
+        return FetchHelper.fetchDataOrFailover(
+                // 对象存储数组 | Object storage array
+                array,
+                // 索引掩码用于快速取模 | Index mask for fast modulo operation
+                indexMask,
+                // 数组遍历辅助工具 | Array traversal helper
+                walker,
+                // 失败处理策略 | Failure handling strategy
+                fetchFailStrategy,
+                // 对象创建器 | Object creator
+                creator);
+    }
+
+    /**
+     * 从主池获取对象的具体实现
+     * concrete implementation for fetching from main pool
+     */
+    protected T fetchDataWithLoop() {
+        return FetchHelper.loopFetchData(array, indexMask, walker);
+    }
 
     /**
      * 预填充缓存队列（私有工具方法）
@@ -152,24 +222,44 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
             for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
                 // 获取新对象并放入缓存
                 // Fetch new object and add to cache
-                softRefStore.release(fetchData());
+                softRefStore.release(fetchDataWithLoop());
             }
         }
     }
 
     /**
-     * 释放并回收对象到池中（覆盖父类方法）
-     * Release and recycle object back to pool (override parent method)
+     * 释放并回收对象到池中（核心方法）
+     * Release and recycle object back to pool (core method)
      *
      * @param used 已使用的对象实例
      *             Used object instance
      */
     @Override
     public void release(T used) {
-        // 重置对象状态到初始值
-        // Reset object state to initial values
-        used.reset();
+        releaser.release(used);
+    }
 
+    /**
+     * 释放对象到线程本地缓存
+     * Release object back to thread-local cache
+     *
+     * @param used 已使用的对象 / The used object to release
+     */
+    private void releaseLocalFirst(T used) {
+        if (LOCAL_QUEUE.get().release(used)) {
+            // 成功释放后执行后续处理 / Perform post-release processing
+            wrapRelease(used);
+        }
+    }
+
+    /**
+     * 释放并回收对象到池中（核心方法）
+     * Release and recycle object back to pool (core method)
+     *
+     * @param used 已使用的对象实例
+     *             Used object instance
+     */
+    private void releaseDirect(T used) {
         // 执行实际的释放操作
         // Perform actual release operation
         wrapRelease(used);
@@ -190,5 +280,13 @@ public abstract class AbstractPrefetchPoolImpl<T extends Resettable> implements 
             // Atomically mark object as unused
             array[id].getUsed().compareAndSet(true, false);
         }
+    }
+
+    private interface Fetcher<T> {
+        T fetch();
+    }
+
+    private interface Releaser<T> {
+        void release(T used);
     }
 }

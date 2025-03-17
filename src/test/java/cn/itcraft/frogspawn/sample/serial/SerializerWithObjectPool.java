@@ -18,8 +18,8 @@ package cn.itcraft.frogspawn.sample.serial;
 
 import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.ObjectsMemoryPool;
+import cn.itcraft.frogspawn.ObjectsMemoryPoolFactory;
 import cn.itcraft.frogspawn.Resettable;
-import cn.itcraft.frogspawn.impl.CachedLoopPoolImpl;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtobufIOUtil;
 import io.protostuff.Schema;
@@ -57,8 +57,7 @@ public class SerializerWithObjectPool {
         int key = clazz.getName().hashCode();
         if (!SCHEMA_MAP.containsKey(key)) {
             SCHEMA_MAP.put(key, RuntimeSchema.getSchema(clazz));
-            POOL_MAP.put(key,
-                         new CachedLoopPoolImpl<>(creator, 3000));
+            POOL_MAP.put(key, ObjectsMemoryPoolFactory.newPool(creator, 3000));
         }
     }
 
@@ -70,6 +69,7 @@ public class SerializerWithObjectPool {
      * @param <T>           泛型信息
      * @return bytearray
      */
+    @SuppressWarnings("unchecked")
     public static <T> byte[] serialize(T obj, int classHashCode) {
         Schema<T> schema = (Schema<T>) SCHEMA_MAP.get(classHashCode);
         if (schema == null) {

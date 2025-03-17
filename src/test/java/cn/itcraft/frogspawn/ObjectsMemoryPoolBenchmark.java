@@ -16,6 +16,7 @@
  */
 package cn.itcraft.frogspawn;
 
+import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Mode;
@@ -35,7 +36,8 @@ import java.util.concurrent.TimeUnit;
 public class ObjectsMemoryPoolBenchmark {
 
     private static final ObjectsMemoryPool<DemoPojo> POOL
-            = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), 3000, PoolStrategy.FETCH_FAIL_AS_NEW, true);
+            = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), 3000,
+                                               new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true));
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
