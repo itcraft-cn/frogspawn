@@ -282,11 +282,4 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
         }
     }
 
-    private interface Fetcher<T> {
-        T fetch();
-    }
-
-    private interface Releaser<T> {
-        void release(T used);
-    }
 }
