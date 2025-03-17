@@ -63,6 +63,7 @@ public class Serializer {
      * @param <T>           泛型信息
      * @return bytearray
      */
+    @SuppressWarnings("unchecked")
     public static <T> byte[] serialize(T obj, int classHashCode) {
         Schema<T> schema = (Schema<T>) SCHEMA_MAP.get(classHashCode);
         if (schema == null) {
@@ -86,6 +87,7 @@ public class Serializer {
      * @param <T>           泛型信息
      * @return 转换后的对象
      */
+    @SuppressWarnings("unchecked")
     public static <T> T deserialize(byte[] bytes, int classHashCode) {
         Schema<T> schema = (Schema<T>) SCHEMA_MAP.get(classHashCode);
         if (schema == null) {

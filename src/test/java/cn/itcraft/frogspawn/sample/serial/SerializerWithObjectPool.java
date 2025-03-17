@@ -93,6 +93,7 @@ public class SerializerWithObjectPool {
      * @param <T>           泛型信息
      * @return 转换后的对象
      */
+    @SuppressWarnings("unchecked")
     public static <T extends Resettable> T deserialize(byte[] bytes, int classHashCode) {
         Schema<T> schema = (Schema<T>) SCHEMA_MAP.get(classHashCode);
         ObjectsMemoryPool<T> pool = (ObjectsMemoryPool<T>) POOL_MAP.get(classHashCode);
@@ -106,6 +107,7 @@ public class SerializerWithObjectPool {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends Resettable> void release(T t, int classHashCode) {
         if (t == null) {
             return;

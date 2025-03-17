@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Fork(value = 3, jvmArgsPrepend = {"-Xmx4096m", "-Xms4096m", "-XX:-RestrictContended"})
 @Threads(value = 8)
 @Warmup(iterations = 5, time = 1)
-@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Measurement(iterations = 10, time = 1)
 public class SerializeCompareBenchmark {
     private static final int HASH_CODE = DemoPojo.class.getName().hashCode();
