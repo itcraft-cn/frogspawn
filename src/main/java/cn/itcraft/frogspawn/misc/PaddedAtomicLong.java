@@ -51,13 +51,10 @@ public class PaddedAtomicLong extends AtomicLong {
 
     /**
      * 使用指定的初始值创建PaddedAtomicLong实例。
-     * 
-     * @param initialValue 初始值，允许负数
-     *                     
      * <p>
      * Creates a PaddedAtomicLong instance with the specified initial value.
-     * 
-     * @param initialValue the initial value, which may be negative
+     *
+     * @param initialValue 初始值，允许负数 | initialValue the initial value, which may be negative
      */
     public PaddedAtomicLong(long initialValue) {
         super(initialValue);

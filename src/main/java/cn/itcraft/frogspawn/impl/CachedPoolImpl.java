@@ -43,13 +43,13 @@ public class CachedPoolImpl<T extends Resettable> extends AbstractCachedPool<T> 
     /**
      * 构造函数，初始化缓存池配置
      * Constructor for initializing cached pool configuration
-     * 
+     *
      * @param creator      对象创建器实例
-     *                    Object creator instance
-     * @param size        资源池容量
-     *                    Pool capacity
+     *                     Object creator instance
+     * @param size         资源池容量
+     *                     Pool capacity
      * @param poolStrategy 资源池管理策略（包含获取失败策略）
-     *                    Pool management strategy (includes fetch failure strategy)
+     *                     Pool management strategy (includes fetch failure strategy)
      */
     public CachedPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         super(creator, size);
@@ -60,20 +60,25 @@ public class CachedPoolImpl<T extends Resettable> extends AbstractCachedPool<T> 
     /**
      * 从资源池获取数据对象的核心方法，实现故障转移机制
      * Core method for fetching data objects from pool with failover mechanism
-     * 
+     *
      * @return 可复用的资源对象
-     *         Reusable resource object
+     * Reusable resource object
      */
     @Override
     protected T fetchData() {
         // 使用辅助类进行带故障转移的资源获取
         // Use helper class for resource fetching with failover
         return FetchHelper.fetchDataOrFailover(
-            array,          // 对象存储数组 | Object storage array
-            indexMask,      // 索引掩码用于快速定位 | Index mask for fast positioning
-            walker,         // 索引遍历器 | Index walker
-            fetchFailStrategy, // 失败处理策略 | Failure handling strategy
-            creator         // 备用对象创建器 | Fallback object creator
-        );
+                // 对象存储数组 | Object storage array
+                array,
+                // 索引掩码用于快速定位 | Index mask for fast positioning
+                indexMask,
+                // 索引遍历器 | Index walker
+                walker,
+                // 失败处理策略 | Failure handling strategy
+                fetchFailStrategy,
+                // 备用对象创建器 | Fallback object creator
+                creator
+                                              );
     }
 }
