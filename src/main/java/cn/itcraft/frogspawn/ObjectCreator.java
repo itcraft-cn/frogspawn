@@ -17,6 +17,12 @@
 package cn.itcraft.frogspawn;
 
 /**
+ * 对象创建器接口，定义创建可重置对象的标准方法
+ * Object creator interface defining standard methods to create resettable objects
+ *
+ * @param <T> 可重置对象类型参数，需继承Resettable接口
+ *           Type parameter of resettable object, must extend Resettable interface
+ * 
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:32 PM
@@ -24,10 +30,14 @@ package cn.itcraft.frogspawn;
 public interface ObjectCreator<T extends Resettable> {
 
     /**
-     * 创建对象
+     * 创建并返回一个新的可重置对象实例
+     * 实现类需确保返回对象已完成初始化并处于可用状态
+     * 
+     * Creates and returns a new instance of resettable object
+     * Implementation should ensure the returned object is properly initialized and ready to use
      *
-     * @return 目标对象
+     * @return 新创建的可重置对象实例
+     *         Newly created resettable object instance
      */
     T create();
-
 }

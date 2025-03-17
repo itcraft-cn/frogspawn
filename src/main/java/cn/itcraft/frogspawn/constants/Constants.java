@@ -45,21 +45,47 @@ public final class Constants {
             = Integer.parseInt(System.getProperty("frogspawn.max.capacity", DEFAULT_MAX_CAPACITY));
     /**
      * 默认缓存大小，默认 8，最大 64
+     * Default cache capacity, default 8, maximum 64
+     * <p>
+     * 当系统属性未配置时将使用此默认值
+     * This default value will be used when system property is not configured
      */
     private static final String DEFAULT_CACHE_CAPACITY = "8";
+
     /**
-     * 最大缓存大小， 64
+     * 最大缓存大小限制，64
+     * Maximum cache capacity limit, 64
+     * <p>
+     * 用于确保缓存容量不超过安全阈值
+     * Used to ensure cache capacity does not exceed safe threshold
      */
     private static final int MAX_CACHE_CAPACITY = 64;
+
     /**
-     * 在 {@link ThreadLocal}
+     * 实际使用的缓存容量值
+     * Actual cache capacity value used
+     * <p>
+     * 通过以下步骤计算得出：
+     * Calculated through following steps:
+     * 1. 读取系统属性 "frogspawn.cache.capacity"，未配置时使用默认值
+     *    Read system property "frogspawn.cache.capacity", use default if not configured
+     * 2. 转换为最接近的2的幂次方（适配哈希表等数据结构需求）
+     *    Convert to nearest positive power of two (for hash table optimization)
+     * 3. 确保最终值不超过最大限制值
+     *    Ensure final value does not exceed maximum limit
      */
-    public static final int CACHE_CAPACITY
-            = Math.min(
+    public static final int CACHE_CAPACITY = Math.min(
             ArrayUtil.findNextPositivePowerOfTwo(
                     Integer.parseInt(System.getProperty("frogspawn.cache.capacity", DEFAULT_CACHE_CAPACITY))),
             MAX_CACHE_CAPACITY);
 
+    /**
+     * 私有构造器防止类实例化
+     * Private constructor to prevent class instantiation
+     * <p>
+     * 工具类/常量类的最佳实践
+     * Best practice for utility/constant classes
+     */
     private Constants() {
     }
 }

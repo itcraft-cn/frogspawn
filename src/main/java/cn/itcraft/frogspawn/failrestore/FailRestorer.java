@@ -20,6 +20,9 @@ import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.Resettable;
 
 /**
+ * 分布式系统的失败恢复接口
+ * Distributed system failure recovery interface
+ *
  * @author Helly Guo
  * <p>
  * Created on 8/25/21 3:28 PM
@@ -27,11 +30,12 @@ import cn.itcraft.frogspawn.Resettable;
 public interface FailRestorer {
 
     /**
-     * 失败转移
+     * 当对象创建失败时执行恢复操作，尝试通过备用策略创建对象
+     * Performs failure recovery when object creation fails, attempts to create object through fallback strategy
      *
-     * @param creator 创建器
-     * @param <T>     泛型
-     * @return 创建的对象
+     * @param creator 用于创建新实例的对象创建器 | Object creator for creating new instances
+     * @param <T>     要创建的对象的类型 | Type of the object to be created
+     * @return 通过恢复机制创建的对象 | Object created through recovery mechanism
      */
     <T extends Resettable> T failover(ObjectCreator<T> creator);
 }

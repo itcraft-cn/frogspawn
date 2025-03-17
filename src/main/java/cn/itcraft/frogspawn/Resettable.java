@@ -20,34 +20,49 @@ package cn.itcraft.frogspawn;
  * @author Helly Guo
  * <p>
  * Created on 8/25/21 12:38 AM
+ * 
+ * 可重置对象的接口规范
+ * Interface specification for resettable objects
  */
 public interface Resettable {
 
     /**
-     * 重置
+     * 重置对象状态到初始值
+     * Reset object state to initial values
      */
     void reset();
 
     /**
-     * 是否有效
+     * 检查对象是否处于无效状态
+     * 默认实现始终返回 false（默认有效）
      * 
-     * @return 是否有效
+     * @return 如果对象无效返回 true，否则 false
+     *         Returns true if the object is invalid, false otherwise
+     * 
+     * Check if the object is in invalid state
+     * Default implementation always returns false (valid by default)
      */
     default boolean isInvalid() {
         return false;
     }
 
     /**
-     * 返回分配 ID，由 {@link #markId(int)} 注入，返回注入的值即可
-     *
-     * @return 分配的 ID
+     * 获取通过 markId 方法注入的分配标识符
+     * 
+     * @return 被标记的分配 ID
+     *         The marked allocation ID
+     * 
+     * Get the assigned identifier injected via markId method
      */
     int getMarkedId();
 
     /**
-     * 标记分配到的 ID，请存储在对象内
-     *
-     * @param id 分配的 ID
+     * 标记分配的唯一标识符，应由实现类存储该值
+     * 
+     * @param id 要分配的标识符
+     *           The identifier to be assigned
+     * 
+     * Mark the assigned unique identifier, should be stored by implementing class
      */
     void markId(int id);
 }

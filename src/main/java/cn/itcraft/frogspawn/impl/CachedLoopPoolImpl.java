@@ -20,19 +20,45 @@ import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.Resettable;
 
 /**
+ * 基于循环策略的缓存对象池实现类，用于高效管理和复用可重置对象
+ * Cached object pool implementation with loop strategy, for efficient management and reuse of resettable objects
+ * 
+ * @param <T> 泛型类型，需实现Resettable接口，表示可重置的对象类型
+ * @param <T> Generic type that implements Resettable interface, representing resettable object type
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:34 PM
  */
 public class CachedLoopPoolImpl<T extends Resettable> extends AbstractCachedPool<T> {
 
+    /**
+     * 构造方法，初始化缓存对象池
+     * Constructor, initializes the cached object pool
+     * 
+     * @param creator 对象创建器，用于生成新的池对象
+     * @param creator Object creator for generating new pool objects
+     * @param size 对象池的初始容量大小
+     * @param size Initial capacity of the object pool
+     */
     public CachedLoopPoolImpl(ObjectCreator<T> creator, int size) {
         super(creator, size);
     }
 
+    /**
+     * 从对象池中获取可用对象的实现方法，采用循环索引策略
+     * Implementation method for fetching available objects from the pool using loop index strategy
+     * 
+     * @return 返回可用的对象实例
+     * @return Available object instance
+     * 
+     * @implNote 通过位掩码(indexMask)优化索引计算，循环遍历对象数组，
+     *           使用walker指针跟踪当前访问位置，确保对象均匀分配
+     * @implNote Uses bitmask(indexMask) to optimize index calculation, 
+     *           iterates through object array in loop pattern, 
+     *           uses walker pointer to track current position for even distribution
+     */
     @Override
     protected T fetchData() {
         return FetchHelper.loopFetchData(array, indexMask, walker);
     }
-
 }
