@@ -47,14 +47,14 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
      * Atomic pointer for circular array traversal
      */
     protected final PaddedAtomicLong walker = new PaddedAtomicLong(0);
-    
+
     /**
      * 核心存储数组，包装可重置对象
      * Core storage array wrapping resettable objects
      */
     @SuppressWarnings("rawtypes")
     protected final WrappedResettable[] array;
-    
+
     /**
      * 下标掩码，用于快速计算环形数组索引
      * Index mask for fast circular array index calculation
@@ -64,24 +64,24 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
     /**
      * 构造方法，初始化对象池
      * Constructor, initializes the object pool
-     * 
+     *
      * @param creator 对象创建器 / Object creator
-     * @param size 初始容量 / Initial capacity
+     * @param size    初始容量 / Initial capacity
      */
     AbstractCachedPool(ObjectCreator<T> creator, int size) {
         // 计算最接近的2的幂次方容量
         // Calculate nearest power of two capacity
         int calculatedCapacity = ArrayUtil.findNextPositivePowerOfTwo(size);
         int capacity = Math.min(calculatedCapacity, Constants.MAX_CAPACITY);
-        
+
         // 使用掩码优化索引计算（替代取模运算）
         // Use mask for optimized index calculation (replaces modulo operation)
         indexMask = capacity - 1;
-        
+
         // 创建带缓存行填充的数组（避免伪共享）
         // Create array with cache line padding (prevents false sharing)
         array = ArrayUtil.createArray(WrappedResettable.class, capacity);
-        
+
         WrappedResettable<T> wrapped;
         int paddedCapacity = ArrayUtil.BUFFER_PAD + capacity;
         // 初始化数组元素，跳过缓存填充区域
@@ -118,7 +118,7 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
     /**
      * 释放对象到线程本地缓存
      * Release object back to thread-local cache
-     * 
+     *
      * @param used 已使用的对象 / The used object to release
      */
     @Override
@@ -132,7 +132,7 @@ public abstract class AbstractCachedPool<T extends Resettable> implements Object
     /**
      * 对象释放后的处理逻辑
      * Post-release processing logic
-     * 
+     *
      * @param used 已释放的对象 / The released object
      */
     protected void wrapRelease(T used) {
