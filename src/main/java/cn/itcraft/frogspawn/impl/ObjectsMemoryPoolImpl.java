@@ -42,27 +42,27 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 线程本地存储的软引用队列，用于快速对象存取
      * Thread-local soft reference store for fast object access
      */
-    protected static final ThreadLocal<SoftRefStore<Resettable>> LOCAL_QUEUE =
+    private static final ThreadLocal<SoftRefStore<Resettable>> LOCAL_QUEUE =
             ThreadLocal.withInitial(SoftRefStore::new);
 
     /**
      * 原子指针，用于环形数组的遍历访问
      * Atomic pointer for circular array traversal
      */
-    protected final PaddedAtomicLong walker = new PaddedAtomicLong(0);
+    private final PaddedAtomicLong walker = new PaddedAtomicLong(0);
 
     /**
      * 核心存储数组，包装可重置对象
      * Core storage array wrapping resettable objects
      */
     @SuppressWarnings("rawtypes")
-    protected final WrappedResettable[] array;
+    private final WrappedResettable[] array;
 
     /**
      * 下标掩码，用于快速计算环形数组索引
      * Index mask for fast circular array index calculation
      */
-    protected final int indexMask;
+    private final int indexMask;
 
     /**
      * 对象创建器，用于生成新的池对象实例
@@ -145,7 +145,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 从主池获取对象的具体实现
      * concrete implementation for fetching from main pool
      */
-    protected T fetchDataWithTimes() {
+    private T fetchDataWithTimes() {
         return FetchHelper.fetchDataOrFailover(
                 // 对象存储数组 | Object storage array
                 array,
@@ -163,7 +163,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 从主池获取对象的具体实现
      * concrete implementation for fetching from main pool
      */
-    protected T fetchDataWithLoop() {
+    private T fetchDataWithLoop() {
         return FetchHelper.loopFetchData(array, indexMask, walker);
     }
 
@@ -190,7 +190,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      *
      * @param used 已释放的对象 / The released object
      */
-    protected void wrapRelease(T used) {
+    private void wrapRelease(T used) {
         // 重置对象状态 / Reset object state
         used.reset();
         int id = used.getMarkedId();
