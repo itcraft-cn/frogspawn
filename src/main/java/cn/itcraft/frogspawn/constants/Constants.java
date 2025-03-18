@@ -68,11 +68,11 @@ public final class Constants {
      * 通过以下步骤计算得出：
      * Calculated through following steps:
      * 1. 读取系统属性 "frogspawn.cache.capacity"，未配置时使用默认值
-     *    Read system property "frogspawn.cache.capacity", use default if not configured
+     * Read system property "frogspawn.cache.capacity", use default if not configured
      * 2. 转换为最接近的2的幂次方（适配哈希表等数据结构需求）
-     *    Convert to nearest positive power of two (for hash table optimization)
+     * Convert to nearest positive power of two (for hash table optimization)
      * 3. 确保最终值不超过最大限制值
-     *    Ensure final value does not exceed maximum limit
+     * Ensure final value does not exceed maximum limit
      */
     public static final int CACHE_CAPACITY = Math.min(
             ArrayUtil.findNextPositivePowerOfTwo(

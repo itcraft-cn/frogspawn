@@ -21,7 +21,7 @@ package cn.itcraft.frogspawn;
  * Memory pool interface for resettable objects, manages reusable objects
  *
  * @param <T> 必须实现 Resettable 接口的类型参数，确保对象可被重置
- *           Type parameter that must implement Resettable interface, ensuring objects can be reset
+ *            Type parameter that must implement Resettable interface, ensuring objects can be reset
  * @author Helly Guo
  * <p>
  * Created on 8/24/21 11:31 PM
@@ -31,27 +31,27 @@ public interface ObjectsMemoryPool<T extends Resettable> {
     /**
      * 从内存池获取可用对象。当池中有可用对象时返回池中对象，否则行为由具体实现决定
      * (可能创建新实例或返回null)
-     * 
+     * <p>
      * Fetches an available object from the memory pool. Returns pooled object when available,
      * otherwise behavior is implementation-dependent (may create new instance or return null)
      *
      * @return 池中的可用对象或新建对象 (具体取决于实现)
-     *         Available object from pool or new instance (implementation dependent)
+     * Available object from pool or new instance (implementation dependent)
      */
     T fetch();
 
     /**
      * 将使用完毕的对象归还内存池。对象在入池前会自动调用reset()方法进行状态重置
      * (注意：实现类应处理无效对象和对象验证)
-     * 
-     * Returns a used object to the memory pool. The object will be reset by 
+     * <p>
+     * Returns a used object to the memory pool. The object will be reset by
      * automatically calling reset() method before being pooled.
      * (Note: Implementation should handle invalid objects and object validation)
      *
      * @param used 需要归还的对象 (必须非null且属于本池管理的对象)
-     *            The used object to return (must be non-null and managed by this pool)
+     *             The used object to return (must be non-null and managed by this pool)
      * @throws IllegalArgumentException 如果参数不合法（具体异常类型由实现决定）
-     *             If invalid argument (specific exception type depends on implementation)
+     *                                  If invalid argument (specific exception type depends on implementation)
      */
     void release(T used);
 }

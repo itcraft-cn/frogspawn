@@ -28,10 +28,10 @@ import java.security.PrivilegedExceptionAction;
  * <p>
  * 注意：sun.misc.Unsafe 是JDK内部API，在不同Java版本中可能不可用或不兼容，
  * 使用此类需要特别小心并了解潜在风险
- * Note: sun.misc.Unsafe is an internal JDK API that may be unavailable or 
- * incompatible in different Java versions. Use with caution and understand 
+ * Note: sun.misc.Unsafe is an internal JDK API that may be unavailable or
+ * incompatible in different Java versions. Use with caution and understand
  * the potential risks.
- * 
+ * <p>
  * Created by Helly on 2017/05/17.
  */
 public final class UnsafeUtil {
