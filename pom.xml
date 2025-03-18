@@ -32,6 +32,26 @@
     </developers>
 
     <dependencies>
+        <!-- log -->
+        <!-- slf4j -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.32</version>
+        </dependency>
+        <!-- logback -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.9</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.9</version>
+            <scope>test</scope>
+        </dependency>
         <!-- junit -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -69,12 +89,6 @@
             <version>1.9.1</version>
             <scope>test</scope>
         </dependency>
-        <!-- opentest4j -->
-        <dependency>
-            <groupId>org.opentest4j</groupId>
-            <artifactId>opentest4j</artifactId>
-            <version>1.2.0</version>
-        </dependency>
         <!-- jmh -->
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
@@ -86,27 +100,6 @@
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-generator-annprocess</artifactId>
             <version>1.32</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- log -->
-        <!-- slf4j -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- logback -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.2.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.2.9</version>
             <scope>test</scope>
         </dependency>
         <!-- protostuff -->
@@ -176,7 +169,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- deploy -->
+            <!-- publish -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
