@@ -90,6 +90,7 @@ public final class ArrayUtil {
      *
      * @param clazz    数组元素类型 Array element type
      * @param capacity 实际容量 Actual capacity
+     * @param <T>      元素类型 Element type
      * @return 带前后填充的数组 Array with front and rear padding
      */
     @SuppressWarnings("unchecked")
@@ -146,7 +147,7 @@ public final class ArrayUtil {
      * Implementation: Calculates the number of leading zeros in (value - 1)'s binary form. Subtracting this from 32 gives the shift amount. Left-shifting 1 by this amount yields the desired power of two.
      *
      * @param value 输入的正整数，必须非负。The input value, must be non-negative.
-     * @return 不小于输入值的最小2的幂次方。The smallest power of two >= the input value.
+     * @return 不小于输入值的最小2的幂次方。The smallest power of two &gt; the input value.
      * @throws RuntimeException 当输入值为负数时抛出。Thrown if the input value is negative.
      */
     public static int findNextPositivePowerOfTwo(int value) {
