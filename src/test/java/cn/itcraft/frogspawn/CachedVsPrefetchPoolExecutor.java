@@ -43,27 +43,26 @@ public class CachedVsPrefetchPoolExecutor {
     static LongAdder execute(ObjectsMemoryPool<DemoPojo> pool, int times) {
         LongAdder sum = new LongAdder();
         CountDownLatch latch = new CountDownLatch(times);
-        EXECUTOR.submit(() -> send(pool, QUEUE));
-        EXECUTOR.submit(() -> receive(pool, sum, latch, QUEUE));
+        EXECUTOR.submit(() -> send(pool));
+        EXECUTOR.submit(() -> receive(pool, sum, latch));
         waitDone(latch);
         return sum;
     }
 
-    private static void send(ObjectsMemoryPool<DemoPojo> pool, BlockingQueue<DemoPojo> queue) {
+    private static void send(ObjectsMemoryPool<DemoPojo> pool) {
         DemoPojo pojo;
         for (int i = 0; i < TEST_TIMES; i++) {
             pojo = pool.fetch();
             pojo.setVal1(1);
-            queue.offer(pojo);
+            QUEUE.offer(pojo);
         }
     }
 
-    private static void receive(ObjectsMemoryPool<DemoPojo> pool, LongAdder sum, CountDownLatch latch,
-                                BlockingQueue<DemoPojo> queue) {
+    private static void receive(ObjectsMemoryPool<DemoPojo> pool, LongAdder sum, CountDownLatch latch) {
         DemoPojo pojo;
         for (int i = 0; i < TEST_TIMES; i++) {
             try {
-                pojo = queue.take();
+                pojo = QUEUE.take();
             } catch (InterruptedException e) {
                 continue;
             }
