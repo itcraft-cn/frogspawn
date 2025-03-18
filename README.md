@@ -40,22 +40,20 @@ public class DemoPojoCreator implements ObjectCreator<DemoPojo> {
 构建对象池
 
 ```java
-ObjectsMemoryPool<DemoPojo> pojoPool
-        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY);
+PoolStrategy strategy = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
+ObjectsMemoryPool<DemoPojo> pool =
+        ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
 ```
 
 使用
 
 ```java
-
 try{
-DemoPojo pojo = pojoPool.fetch();
-// TODO using pojo
+    DemoPojo pojo = pojoPool.fetch();
+    // TODO using pojo
     ...
-            }finally{
-            pojoPool.
-
-release(pojo);
+}finally{
+    pojoPool.release(pojo);
 }
 ```
 
@@ -66,8 +64,9 @@ release(pojo);
 1. 必定从池中取
 
     ```java
-    ObjectsMemoryPool<DemoPojo> pojoPool
-        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY, MUST_FETCH_IN_POOL);
+    PoolStrategy strategy = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
+    ObjectsMemoryPool<DemoPojo> pool =
+            ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
 1. 取一定次数后返空

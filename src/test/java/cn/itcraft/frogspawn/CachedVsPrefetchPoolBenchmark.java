@@ -17,6 +17,7 @@
 package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Mode;
@@ -43,11 +44,13 @@ public class CachedVsPrefetchPoolBenchmark {
     private static final int TEST_TIMES = 10000;
     private static final int SIZE = 3000000;
 
-    private static final PoolStrategy STRATEGY1 = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, false);
-    private static final PoolStrategy STRATEGY2 = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
-    private static final ObjectsMemoryPool<DemoPojo> SINGLE_POOL =
+    private static final PoolStrategy STRATEGY1 =
+            new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, false);
+    private static final PoolStrategy STRATEGY2 =
+            new PoolStrategy(FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
+    private static final ObjectsMemoryPool<DemoPojo> POOL1 =
             ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, STRATEGY1);
-    private static final ObjectsMemoryPool<DemoPojo> DRAIN_POOL =
+    private static final ObjectsMemoryPool<DemoPojo> POOL2 =
             ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, STRATEGY2);
 
     public static void main(String[] args) throws RunnerException {
@@ -73,12 +76,12 @@ public class CachedVsPrefetchPoolBenchmark {
     @Benchmark
     @OperationsPerInvocation(TEST_TIMES)
     public void testSingle(Blackhole hole) {
-        execute(hole, SINGLE_POOL);
+        execute(hole, POOL1);
     }
 
     @Benchmark
     @OperationsPerInvocation(TEST_TIMES)
     public void testDrain(Blackhole hole) {
-        execute(hole, DRAIN_POOL);
+        execute(hole, POOL2);
     }
 }

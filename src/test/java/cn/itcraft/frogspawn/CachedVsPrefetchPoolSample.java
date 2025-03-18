@@ -18,6 +18,7 @@ package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.misc.MainHelper;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +39,10 @@ public class CachedVsPrefetchPoolSample {
     private static final int SIZE = 30000;
 
     public static void main(String[] args) {
-        PoolStrategy strategy1 = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, false);
-        PoolStrategy strategy2 = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
+        PoolStrategy strategy1 =
+                new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, false);
+        PoolStrategy strategy2 =
+                new PoolStrategy(FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
         ObjectsMemoryPool<DemoPojo> singlePool =
                 ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy1);
         ObjectsMemoryPool<DemoPojo> drainPool =

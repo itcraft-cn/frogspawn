@@ -24,6 +24,7 @@ import cn.itcraft.frogspawn.data.WrappedResettable;
 import cn.itcraft.frogspawn.misc.PaddedAtomicLong;
 import cn.itcraft.frogspawn.misc.SoftRefStore;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import cn.itcraft.frogspawn.util.ArrayUtil;
 
@@ -78,6 +79,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
     private final FetchFailStrategy fetchFailStrategy;
 
     private final Fetcher<T> fetcher;
+    private final Fetcher<T> fetcherActual;
     private final Releaser<T> releaser;
 
     /**
@@ -115,11 +117,16 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
         if (poolStrategy.isPrefetch()) {
             this.fetcher = this::fetchWithPrefetch;
             this.releaser = this::releaseDirect;
-            this.fetchFailStrategy = null;
         } else {
             this.fetcher = this::fetchWithCache;
             this.releaser = this::releaseLocalFirst;
+        }
+        if (FetchStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy.getFetchStrategy())) {
+            this.fetchFailStrategy = null;
+            this.fetcherActual = this::fetchDataWithLoop;
+        } else {
             this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
+            this.fetcherActual = this::fetchDataWithTimes;
         }
     }
 
@@ -171,7 +178,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
         if (t == null || t.isInvalid()) {
             // 从数据源获取新对象
             // Fetch new object from data source
-            t = fetchDataWithLoop();
+            t = fetcherActual.fetch();
 
             // 触发预取机制补充缓存
             // Trigger prefetch mechanism to replenish cache
@@ -222,7 +229,12 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
             for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
                 // 获取新对象并放入缓存
                 // Fetch new object and add to cache
-                softRefStore.release(fetchDataWithLoop());
+                T t = fetcherActual.fetch();
+                if (t == null) {
+                    break;
+                } else {
+                    softRefStore.release(t);
+                }
             }
         }
     }

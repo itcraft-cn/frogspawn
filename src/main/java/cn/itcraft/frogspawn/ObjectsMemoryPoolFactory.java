@@ -18,6 +18,7 @@ package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.impl.ObjectsMemoryPoolImpl;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 
 /**
@@ -46,7 +47,7 @@ public final class ObjectsMemoryPoolFactory {
      */
     public static <T extends Resettable> ObjectsMemoryPool<T> newPool(ObjectCreator<T> creator, int size) {
         return newPool(creator, size,
-                       new PoolStrategy(FetchFailStrategy.CALL_CREATOR, false));
+                       new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, false));
     }
 
     /**

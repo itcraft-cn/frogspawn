@@ -24,29 +24,22 @@ package cn.itcraft.frogspawn.strategy;
  * <p>
  * Created on 8/25/21 3:02 PM
  */
-public class PoolStrategy {
-    private final FetchStrategy fetchStrategy;
-    private final FetchFailStrategy fetchFailStrategy;
-    private final boolean prefetch;
+public enum FetchStrategy {
+    /**
+     * 循环获取，必须从池中取得对象（无限重试）
+     * Keep retrying until successfully fetching an object from the pool (infinite retries)
+     */
+    MUST_FETCH_IN_POOL,
 
-    public PoolStrategy(FetchStrategy fetchStrategy, FetchFailStrategy fetchFailStrategy, boolean prefetch) {
-        if (fetchStrategy == null || fetchFailStrategy == null) {
-            throw new IllegalArgumentException("FetchStrategy or FetchFailStrategy should not be null");
-        }
-        this.fetchStrategy = fetchStrategy;
-        this.fetchFailStrategy = fetchFailStrategy;
-        this.prefetch = prefetch;
-    }
+    /**
+     * 循环获取指定次数后，返回空值
+     * Retry a certain number of times, return null if all attempts fail
+     */
+    FETCH_FAIL_AS_NULL,
 
-    public FetchStrategy getFetchStrategy() {
-        return fetchStrategy;
-    }
-
-    public FetchFailStrategy getFetchFailStrategy() {
-        return fetchFailStrategy;
-    }
-
-    public boolean isPrefetch() {
-        return prefetch;
-    }
+    /**
+     * 循环获取指定次数后，创建新对象返回
+     * Retry a certain number of times, create new instance if all attempts fail
+     */
+    FETCH_FAIL_AS_NEW
 }
