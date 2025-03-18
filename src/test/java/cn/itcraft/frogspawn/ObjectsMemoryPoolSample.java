@@ -33,9 +33,9 @@ public class ObjectsMemoryPoolSample {
         ObjectsMemoryPoolSample sample = new ObjectsMemoryPoolSample();
         MainHelper.waitProfiler();
         sample.loop(100_000);
-        sample.loop(1_000_000);
+        sample.loop(100_000_000);
         sample.loop2(100_000);
-        sample.loop2(1_000_000);
+        sample.loop2(100_000_000);
         MainHelper.holdJvm();
     }
 

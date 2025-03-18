@@ -86,6 +86,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      *
      * @param creator 对象创建器 / Object creator
      * @param size    初始容量 / Initial capacity
+     * @param poolStrategy 池策略 / Pool strategy
      */
     public ObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         // 计算最接近的2的幂次方容量
