@@ -79,8 +79,6 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
     private final FetchFailStrategy fetchFailStrategy;
 
     private final Fetcher<T> fetcher;
-    private final Fetcher<T> fetcherActual;
-    private final Releaser<T> releaser;
 
     /**
      * 构造方法，初始化对象池
@@ -114,75 +112,31 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
             array[i] = wrapped;
         }
         this.creator = creator;
-        if (poolStrategy.isPrefetch()) {
-            this.fetcher = this::fetchWithPrefetch;
-            this.releaser = this::releaseDirect;
-        } else {
-            this.fetcher = this::fetchWithCache;
-            this.releaser = this::releaseLocalFirst;
-        }
         if (FetchStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy.getFetchStrategy())) {
+            this.fetcher = this::fetchDataWithLoop;
             this.fetchFailStrategy = null;
-            this.fetcherActual = this::fetchDataWithLoop;
         } else {
+            this.fetcher = this::fetchDataWithTimes;
             this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
-            this.fetcherActual = this::fetchDataWithTimes;
         }
     }
 
     /**
      * 从池中获取可用对象（核心方法）
      * Fetch an available object from the pool (core method)
+     * 获取对象（优先从线程本地缓存获取）
+     * Fetch object (preferentially from thread-local cache)
      *
      * @return 可复用的对象实例
      * Reusable object instance
      */
     @Override
-    public T fetch() {
-        return fetcher.fetch();
-    }
-
-    /**
-     * 获取对象（优先从线程本地缓存获取）
-     * Fetch object (preferentially from thread-local cache)
-     */
     @SuppressWarnings("unchecked")
-    private T fetchWithCache() {
+    public T fetch() {
         T t = (T) LOCAL_QUEUE.get().fetch();
         if (t == null || t.isInvalid()) {
             // 缓存未命中时从主池获取 / Fetch from the main pool when cache missed
-            return fetchDataWithTimes();
-        }
-        return t;
-    }
-
-    /**
-     * 从池中获取可用对象（核心方法）
-     * Fetch an available object from the pool (core method)
-     *
-     * @return 可复用的对象实例
-     * Reusable object instance
-     */
-    @SuppressWarnings("unchecked")
-    private T fetchWithPrefetch() {
-        // 获取线程本地软引用存储
-        // Get thread-local soft reference store
-        SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
-
-        // 尝试从本地队列获取对象
-        // Attempt to get object from local queue
-        T t = (T) softRefStore.fetch();
-
-        // 对象无效或不存在时的处理逻辑
-        // Handle case when object is invalid or not found
-        if (t == null || t.isInvalid()) {
-            // 从数据源获取新对象
-            // Fetch new object from data source
-            t = fetcherActual.fetch();
-
-            // 触发预取机制补充缓存
-            // Trigger prefetch mechanism to replenish cache
-            prefetch(softRefStore);
+            return fetcher.fetch();
         }
         return t;
     }
@@ -214,67 +168,20 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
     }
 
     /**
-     * 预填充缓存队列（私有工具方法）
-     * Prefill the cache queue (private utility method)
-     *
-     * @param softRefStore 线程本地软引用存储对象
-     *                     Thread-local soft reference store object
-     */
-    private void prefetch(SoftRefStore<Resettable> softRefStore) {
-        // 当缓存为空时进行预填充
-        // Prefill when cache is empty
-        if (softRefStore.isEmpty()) {
-            // 按照预设容量填充缓存
-            // Fill cache according to predefined capacity
-            for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
-                // 获取新对象并放入缓存
-                // Fetch new object and add to cache
-                T t = fetcherActual.fetch();
-                if (t == null) {
-                    break;
-                } else {
-                    softRefStore.release(t);
-                }
-            }
-        }
-    }
-
-    /**
      * 释放并回收对象到池中（核心方法）
      * Release and recycle object back to pool (core method)
+     * 释放对象到线程本地缓存
+     * Release object back to thread-local cache
      *
      * @param used 已使用的对象实例
      *             Used object instance
      */
     @Override
     public void release(T used) {
-        releaser.release(used);
-    }
-
-    /**
-     * 释放对象到线程本地缓存
-     * Release object back to thread-local cache
-     *
-     * @param used 已使用的对象 / The used object to release
-     */
-    private void releaseLocalFirst(T used) {
         if (LOCAL_QUEUE.get().release(used)) {
             // 成功释放后执行后续处理 / Perform post-release processing
             wrapRelease(used);
         }
-    }
-
-    /**
-     * 释放并回收对象到池中（核心方法）
-     * Release and recycle object back to pool (core method)
-     *
-     * @param used 已使用的对象实例
-     *             Used object instance
-     */
-    private void releaseDirect(T used) {
-        // 执行实际的释放操作
-        // Perform actual release operation
-        wrapRelease(used);
     }
 
     /**
