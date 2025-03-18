@@ -40,7 +40,8 @@ public class DemoPojoCreator implements ObjectCreator<DemoPojo> {
 构建对象池
 
 ```java
-PoolStrategy strategy = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
+PoolStrategy strategy = new PoolStrategy(
+        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
 ObjectsMemoryPool<DemoPojo> pool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
 ```
@@ -64,30 +65,28 @@ try{
 1. 必定从池中取
 
     ```java
-    PoolStrategy strategy = new PoolStrategy(FetchFailStrategy.CALL_CREATOR, true);
+    PoolStrategy strategy = new PoolStrategy(
+        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
     ObjectsMemoryPool<DemoPojo> pool =
-            ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
+        ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
 1. 取一定次数后返空
 
     ```java
-    ObjectsMemoryPool<DemoPojo> pojoPool
-        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY, FETCH_FAIL_AS_NULL);
+    PoolStrategy strategy = new PoolStrategy(
+        FetchStrategy.FETCH_FAIL_AS_NULL, FetchFailStrategy.CALL_CREATOR, true);
+    ObjectsMemoryPool<DemoPojo> pojoPool =
+        ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
 1. 取一定次数后创建新对象
 
     ```java
-    ObjectsMemoryPool<DemoPojo> pojoPool
-        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY, FETCH_FAIL_AS_NEW);
-    ```
-
-   或
-
-    ```java
-    ObjectsMemoryPool<DemoPojo> pojoPool
-        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY);
+    PoolStrategy strategy = new PoolStrategy(
+        FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, true);
+    ObjectsMemoryPool<DemoPojo> pojoPool =
+        ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
 默认方案为最后一种。
@@ -102,8 +101,7 @@ try{
 
 **以下内容需依赖 `JDK8` 下运行，不能高，不能低!!**
 
-[
-`@sun.misc.Contended` 源代码](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
+[`@sun.misc.Contended` 源代码](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
 里面的注解中说到，对子类可能无效。所以，当前代码中的使用，可能是无效的。
 
 另有文档说，`@Contended` 注解需要 `JVM` 开启参数 `-XX:-RestrictContended` 。
@@ -111,4 +109,3 @@ try{
 ## 更新记录
 
 [ChangeLog](ChangeLog.md)
-
