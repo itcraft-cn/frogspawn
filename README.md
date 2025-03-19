@@ -41,7 +41,7 @@ public class DemoPojoCreator implements ObjectCreator<DemoPojo> {
 
 ```java
 PoolStrategy strategy = new PoolStrategy(
-        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
+        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR);
 ObjectsMemoryPool<DemoPojo> pool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
 ```
@@ -66,7 +66,7 @@ try{
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
-        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR, true);
+        FetchStrategy.MUST_FETCH_IN_POOL, FetchFailStrategy.CALL_CREATOR);
     ObjectsMemoryPool<DemoPojo> pool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
@@ -75,7 +75,7 @@ try{
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
-        FetchStrategy.FETCH_FAIL_AS_NULL, FetchFailStrategy.CALL_CREATOR, true);
+        FetchStrategy.FETCH_FAIL_AS_NULL, FetchFailStrategy.CALL_CREATOR);
     ObjectsMemoryPool<DemoPojo> pojoPool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
@@ -84,7 +84,7 @@ try{
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
-        FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, true);
+        FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR);
     ObjectsMemoryPool<DemoPojo> pojoPool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```

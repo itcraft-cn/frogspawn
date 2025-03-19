@@ -27,15 +27,13 @@ package cn.itcraft.frogspawn.strategy;
 public class PoolStrategy {
     private final FetchStrategy fetchStrategy;
     private final FetchFailStrategy fetchFailStrategy;
-    private final boolean prefetch;
 
-    public PoolStrategy(FetchStrategy fetchStrategy, FetchFailStrategy fetchFailStrategy, boolean prefetch) {
+    public PoolStrategy(FetchStrategy fetchStrategy, FetchFailStrategy fetchFailStrategy) {
         if (fetchStrategy == null || fetchFailStrategy == null) {
             throw new IllegalArgumentException("FetchStrategy or FetchFailStrategy should not be null");
         }
         this.fetchStrategy = fetchStrategy;
         this.fetchFailStrategy = fetchFailStrategy;
-        this.prefetch = prefetch;
     }
 
     public FetchStrategy getFetchStrategy() {
@@ -44,9 +42,5 @@ public class PoolStrategy {
 
     public FetchFailStrategy getFetchFailStrategy() {
         return fetchFailStrategy;
-    }
-
-    public boolean isPrefetch() {
-        return prefetch;
     }
 }
