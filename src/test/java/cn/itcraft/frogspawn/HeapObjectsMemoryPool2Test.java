@@ -16,6 +16,9 @@
  */
 package cn.itcraft.frogspawn;
 
+import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
+import cn.itcraft.frogspawn.strategy.FetchStrategy;
+import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -41,6 +44,18 @@ public class HeapObjectsMemoryPool2Test {
         ObjectsMemoryPool<DemoPojo> pojoPool
                 = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY);
         test(pojoPool);
+    }
+
+    @Test
+    public void testStrategies() {
+        for (FetchStrategy fetchStrategy : FetchStrategy.values()) {
+            for (FetchFailStrategy fetchFailStrategy : FetchFailStrategy.values()) {
+                PoolStrategy strategy = new PoolStrategy(fetchStrategy, fetchFailStrategy);
+                ObjectsMemoryPool<DemoPojo> pojoPool
+                        = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SINGLE_CAPACITY, strategy);
+                test(pojoPool);
+            }
+        }
     }
 
     private void test(ObjectsMemoryPool<DemoPojo> pojoPool) {
