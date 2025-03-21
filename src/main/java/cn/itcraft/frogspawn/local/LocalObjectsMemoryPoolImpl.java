@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package cn.itcraft.frogspawn.impl;
+package cn.itcraft.frogspawn.local;
 
 import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.ObjectsMemoryPool;
@@ -36,7 +36,7 @@ import cn.itcraft.frogspawn.util.ArrayUtil;
  * <p>
  * Created on 8/24/21 11:34 PM
  */
-public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
+public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
 
     /**
      * 线程本地存储的软引用队列，用于快速对象存取
@@ -88,7 +88,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * @param size    初始容量 / Initial capacity
      * @param poolStrategy 池策略 / Pool strategy
      */
-    public ObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
+    public LocalObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         // 计算最接近的2的幂次方容量
         // Calculate nearest power of two capacity
         int calculatedCapacity = ArrayUtil.findNextPositivePowerOfTwo(size);

@@ -1,4 +1,4 @@
-package cn.itcraft.frogspawn.impl;
+package cn.itcraft.frogspawn.local;
 
 /**
  * @author Helly Guo

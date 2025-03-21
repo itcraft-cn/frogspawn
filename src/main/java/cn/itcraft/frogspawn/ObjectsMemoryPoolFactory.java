@@ -16,7 +16,7 @@
  */
 package cn.itcraft.frogspawn;
 
-import cn.itcraft.frogspawn.impl.ObjectsMemoryPoolImpl;
+import cn.itcraft.frogspawn.local.LocalObjectsMemoryPoolImpl;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
@@ -31,8 +31,10 @@ import cn.itcraft.frogspawn.strategy.PoolStrategy;
  */
 public final class ObjectsMemoryPoolFactory {
 
-    // 私有构造函数防止实例化
-    // Private constructor to prevent instantiation
+    /**
+     * 私有构造函数防止实例化
+     * Private constructor to prevent instantiation
+     */
     private ObjectsMemoryPoolFactory() {
     }
 
@@ -66,6 +68,6 @@ public final class ObjectsMemoryPoolFactory {
         if (poolStrategy == null) {
             throw new IllegalArgumentException("Pool strategy can not be null");
         }
-        return new ObjectsMemoryPoolImpl<>(creator, size, poolStrategy);
+        return new LocalObjectsMemoryPoolImpl<>(creator, size, poolStrategy);
     }
 }

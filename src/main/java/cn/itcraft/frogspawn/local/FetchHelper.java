@@ -1,4 +1,4 @@
-package cn.itcraft.frogspawn.impl;
+package cn.itcraft.frogspawn.local;
 
 import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.Resettable;
