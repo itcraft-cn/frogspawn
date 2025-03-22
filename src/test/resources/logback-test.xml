@@ -54,7 +54,6 @@
         <appender-ref ref="ASYNC"/>
     </root>
 
-    <logger name="com.erayt" level="INFO"/>
     <!-- disable log output -->
     <logger name="cn.beeop" level="OFF"/>
     <logger name="org.bbottema.genericobjectpool" level="OFF"/>
