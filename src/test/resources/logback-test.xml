@@ -55,7 +55,5 @@
     </root>
 
     <!-- disable log output -->
-    <logger name="cn.beeop" level="OFF"/>
-    <logger name="org.bbottema.genericobjectpool" level="OFF"/>
 
 </configuration>
