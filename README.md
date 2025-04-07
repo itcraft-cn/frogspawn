@@ -1,24 +1,26 @@
-# `frogspawn` 蛙卵
+# `frogspawn` 
 
-**期望**：
+[中文版本](README_cn.md)
 
-> 如青蛙产卵一般，密集产出大量卵，供后续使用
+**Concept**:
 
-**目标**：
+> Like frogs spawning, densely producing large quantities of eggs for future use
 
-> 作为内存对象池，预分配预处理
+**Objective**:
 
-**使用场景**
+> Serves as an in-memory object pool with pre-allocation and pre-processing
 
-> 低延迟场合下，用以代替分配大量无状态小对象。防止GC导致的延迟波动。
+**Use Cases**
 
-比如：接口序列化/反序列化时
+> Used in low-latency scenarios to replace allocation of numerous stateless small objects. Prevents latency fluctuations caused by GC.
+
+Example: During interface serialization/deserialization
 
 [SerializeCompareSample](src/test/java/cn/itcraft/frogspawn/sample/serial/SerializeCompareSample.java)
 
-## 使用方法
+## Usage
 
-受管理对象需实现一个特定接口 `Resettable`
+Managed objects need to implement a specific interface `Resettable`
 
 ```java
 public class DemoPojo implements Resettable {
@@ -26,7 +28,7 @@ public class DemoPojo implements Resettable {
 }
 ```
 
-需要实现一个创建器
+Need to implement a creator
 
 ```java
 public class DemoPojoCreator implements ObjectCreator<DemoPojo> {
@@ -37,7 +39,7 @@ public class DemoPojoCreator implements ObjectCreator<DemoPojo> {
 }
 ```
 
-构建对象池
+Build object pool
 
 ```java
 PoolStrategy strategy = new PoolStrategy(
@@ -46,7 +48,7 @@ ObjectsMemoryPool<DemoPojo> pool =
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
 ```
 
-使用
+Usage
 
 ```java
 try{
@@ -58,11 +60,11 @@ try{
 }
 ```
 
-## 三种可选模式
+## Three Available Modes
 
-目前支持三种不同模式：
+Currently supports three different modes:
 
-1. 必定从池中取
+1. Must fetch from pool
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
@@ -71,7 +73,7 @@ try{
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
-1. 取一定次数后返空
+2. Return null after certain fetch attempts
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
@@ -80,7 +82,7 @@ try{
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
-1. 取一定次数后创建新对象
+3. Create new object after certain fetch attempts
 
     ```java
     PoolStrategy strategy = new PoolStrategy(
@@ -89,23 +91,24 @@ try{
         ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), SIZE, strategy);
     ```
 
-默认方案为最后一种。
+The last option is the default.
 
-## 可选参数
+## Optional Parameters
 
-- `-Dfrogspawn.fetch.times`，最大循环取次数，默认值：100
-- `-Dfrogspawn.max.capacity`，池最大容量，默认值：67108864，即 65536*1024
-- `-Dfrogspawn.cache.capacity`, 线程缓存容量, 默认值: 8，最大值: 64。 设置为 `1` 能获得最大性能。
+- `-Dfrogspawn.fetch.times`: Maximum fetch attempts, default: 100
+- `-Dfrogspawn.max.capacity`: Maximum pool capacity, default: 67108864 (65536*1024)
+- `-Dfrogspawn.cache.capacity`: Thread cache capacity, default: 8, maximum: 64. Setting to `1` provides maximum performance.
 
-## 伪共享相关
+## False Sharing Considerations
 
-**以下内容需依赖 `JDK8` 下运行，不能高，不能低!!**
+**The following content requires running on JDK8 specifically - no higher, no lower!!**
 
-[`@sun.misc.Contended` 源代码](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
-里面的注解中说到，对子类可能无效。所以，当前代码中的使用，可能是无效的。
+[`@sun.misc.Contended` Source Code](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
+The annotation mentions it may be ineffective for subclasses. Therefore, current usage in the code might be ineffective.
 
-另有文档说，`@Contended` 注解需要 `JVM` 开启参数 `-XX:-RestrictContended` 。
+Additional documentation states that the `@Contended` annotation requires JVM parameter `-XX:-RestrictContended` to be enabled.
 
-## 更新记录
+## Changelog
 
 [ChangeLog](ChangeLog.md)
+```
