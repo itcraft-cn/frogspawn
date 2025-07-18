@@ -3,14 +3,9 @@
     xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>cn.itcraft</groupId>
-        <artifactId>frogspawn-parent</artifactId>
-        <version>0.6-dev</version>
-    </parent>
-    
+    <groupId>cn.itcraft</groupId>
     <artifactId>frogspawn</artifactId>
-    <version>0.6-dev</version>
+    <version>0.6-dev</version><!-- managed by updgitver -->
 
     <name>frogspawn</name>
     <description>A java object pool, focus on gc-friendry/low-latency.</description>
