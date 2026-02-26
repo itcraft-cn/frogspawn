@@ -82,6 +82,7 @@ public class ClassCheckerTest {
         private Long a2;
         private Double a3;
         private String[] a4;
+        private long address;
 
         @Override
         public void reset() {
@@ -94,6 +95,48 @@ public class ClassCheckerTest {
 
         @Override
         public void markId(int id) {
+        }
+
+        @Override
+        public long getAddress() {
+            return address;
+        }
+
+        @Override
+        public void setAddress(long address) {
+            this.address = address;
+        }
+
+        @Override
+        public int getObjectSize() {
+            return 0;
+        }
+
+        @Override
+        public int getArrayFieldCount() {
+            return 0;
+        }
+
+        @Override
+        public long getArrayAddress(int index) {
+            return 0;
+        }
+
+        @Override
+        public void setArrayAddress(int index, long address) {
+        }
+
+        @Override
+        public int getArrayLength(int index) {
+            return 0;
+        }
+
+        @Override
+        public void writeToMemory() {
+        }
+
+        @Override
+        public void readFromMemory() {
         }
     }
 
@@ -103,6 +146,9 @@ public class ClassCheckerTest {
         private long a2;
         private double a3;
         private int[] a4;
+        private long address;
+        private long arrayAddress;
+        private int arrayLength;
 
         @Override
         public void reset() {
@@ -115,6 +161,49 @@ public class ClassCheckerTest {
 
         @Override
         public void markId(int id) {
+        }
+
+        @Override
+        public long getAddress() {
+            return address;
+        }
+
+        @Override
+        public void setAddress(long address) {
+            this.address = address;
+        }
+
+        @Override
+        public int getObjectSize() {
+            return 0;
+        }
+
+        @Override
+        public int getArrayFieldCount() {
+            return 1;
+        }
+
+        @Override
+        public long getArrayAddress(int index) {
+            return arrayAddress;
+        }
+
+        @Override
+        public void setArrayAddress(int index, long address) {
+            this.arrayAddress = address;
+        }
+
+        @Override
+        public int getArrayLength(int index) {
+            return arrayLength;
+        }
+
+        @Override
+        public void writeToMemory() {
+        }
+
+        @Override
+        public void readFromMemory() {
         }
     }
 
@@ -124,6 +213,9 @@ public class ClassCheckerTest {
         private long a2;
         private double a3;
         private int[] a4;
+        private long address;
+        private long arrayAddress;
+        private int arrayLength;
 
         @Override
         public void reset() {
@@ -136,6 +228,49 @@ public class ClassCheckerTest {
 
         @Override
         public void markId(int id) {
+        }
+
+        @Override
+        public long getAddress() {
+            return address;
+        }
+
+        @Override
+        public void setAddress(long address) {
+            this.address = address;
+        }
+
+        @Override
+        public int getObjectSize() {
+            return 0;
+        }
+
+        @Override
+        public int getArrayFieldCount() {
+            return 1;
+        }
+
+        @Override
+        public long getArrayAddress(int index) {
+            return arrayAddress;
+        }
+
+        @Override
+        public void setArrayAddress(int index, long address) {
+            this.arrayAddress = address;
+        }
+
+        @Override
+        public int getArrayLength(int index) {
+            return arrayLength;
+        }
+
+        @Override
+        public void writeToMemory() {
+        }
+
+        @Override
+        public void readFromMemory() {
         }
     }
 
@@ -147,6 +282,9 @@ public class ClassCheckerTest {
         private int[] a4;
 
         private int this$0;
+        private long address;
+        private long arrayAddress;
+        private int arrayLength;
 
         @Override
         public void reset() {
@@ -159,6 +297,49 @@ public class ClassCheckerTest {
 
         @Override
         public void markId(int id) {
+        }
+
+        @Override
+        public long getAddress() {
+            return address;
+        }
+
+        @Override
+        public void setAddress(long address) {
+            this.address = address;
+        }
+
+        @Override
+        public int getObjectSize() {
+            return 0;
+        }
+
+        @Override
+        public int getArrayFieldCount() {
+            return 1;
+        }
+
+        @Override
+        public long getArrayAddress(int index) {
+            return arrayAddress;
+        }
+
+        @Override
+        public void setArrayAddress(int index, long address) {
+            this.arrayAddress = address;
+        }
+
+        @Override
+        public int getArrayLength(int index) {
+            return arrayLength;
+        }
+
+        @Override
+        public void writeToMemory() {
+        }
+
+        @Override
+        public void readFromMemory() {
         }
     }
 

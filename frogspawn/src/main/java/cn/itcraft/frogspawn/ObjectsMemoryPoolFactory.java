@@ -17,6 +17,8 @@
 package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.local.LocalObjectsMemoryPoolImpl;
+import cn.itcraft.frogspawn.offheap.OffHeapObjectsMemoryPoolImpl;
+import cn.itcraft.frogspawn.offheap.PrimitiveStructure;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
@@ -69,5 +71,17 @@ public final class ObjectsMemoryPoolFactory {
             throw new IllegalArgumentException("Pool strategy can not be null");
         }
         return new LocalObjectsMemoryPoolImpl<>(creator, size, poolStrategy);
+    }
+
+    /**
+     * 创建非堆内存对象池
+     * Create off-heap memory object pool
+     *
+     * @param creator 对象创建器 / Object creator
+     * @param <T>     必须实现 PrimitiveStructure 接口的类型 / Type must implement PrimitiveStructure interface
+     * @return 非堆内存池实例 / Off-heap memory pool instance
+     */
+    public static <T extends PrimitiveStructure> ObjectsMemoryPool<T> newOffHeapPool(ObjectCreator<T> creator) {
+        return new OffHeapObjectsMemoryPoolImpl<>(creator);
     }
 }
