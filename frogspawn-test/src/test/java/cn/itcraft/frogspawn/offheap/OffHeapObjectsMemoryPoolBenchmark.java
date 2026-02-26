@@ -16,7 +16,6 @@
  */
 package cn.itcraft.frogspawn.offheap;
 
-import cn.itcraft.frogspawn.DemoPojo;
 import cn.itcraft.frogspawn.ObjectsMemoryPool;
 import cn.itcraft.frogspawn.ObjectsMemoryPoolFactory;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -38,6 +37,9 @@ public class OffHeapObjectsMemoryPoolBenchmark {
 
     private static final ObjectsMemoryPool<SimplePrimitiveStructure> O_H_POOL
             = ObjectsMemoryPoolFactory.newOffHeapPool(SimplePrimitiveStructure::new);
+    
+    private static final ObjectsMemoryPool<SimplePrimitiveStructure> HEAP_POOL
+            = ObjectsMemoryPoolFactory.newPool(SimplePrimitiveStructure::new, 3000);
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -62,14 +64,21 @@ public class OffHeapObjectsMemoryPoolBenchmark {
     }
 
     @Benchmark
-    public void testFetchAndRelease(Blackhole blackhole) {
+    public void testOffHeapFetchAndRelease(Blackhole blackhole) {
         SimplePrimitiveStructure pojo = O_H_POOL.fetch();
         blackhole.consume(pojo);
         O_H_POOL.release(pojo);
     }
 
     @Benchmark
+    public void testHeapFetchAndRelease(Blackhole blackhole) {
+        SimplePrimitiveStructure pojo = HEAP_POOL.fetch();
+        blackhole.consume(pojo);
+        HEAP_POOL.release(pojo);
+    }
+
+    @Benchmark
     public void testNew(Blackhole blackhole) {
-        blackhole.consume(new DemoPojo());
+        blackhole.consume(new SimplePrimitiveStructure());
     }
 }
