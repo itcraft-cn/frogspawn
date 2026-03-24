@@ -111,4 +111,32 @@ Additional documentation states that the `@Contended` annotation requires JVM pa
 ## Changelog
 
 [ChangeLog](ChangeLog.md)
+
+## Performance Test Results
+
+Test environment: OpenJDK 25, 4GB heap, warmup 100k iterations, test 1M iterations
+
+### Small Objects (~64 bytes) - GC Pressure Test
+
+| Implementation | Time (ms) | GC Count |
+|----------------|-----------|----------|
+| **FixedOffHeapPool** | **17.59** | **0** |
+| new | 27.37 | 0 |
+| HeapPool | 118.65 | 0 |
+
+### Large Objects (~2KB) - GC Pressure Test
+
+| Implementation | Time (ms) | GC Count |
+|----------------|-----------|----------|
+| **FixedOffHeapPool** | **82.32** | **0** |
+| new | 127.91 | 1 |
+| HeapPool | 645.25 | 0 |
+
+### Conclusion
+
+- **FixedOffHeapPool**: Best performance - fastest execution, zero GC, efficient native reset via `UNSAFE.setMemory`
+- **HeapPool**: Large object reset (array clearing) overhead > JVM new object zero-initialization
+- **new**: Medium performance, may trigger GC under pressure
+
+**Recommendation**: Use `FixedOffHeapPool` for large objects and GC-sensitive scenarios.
 ```
