@@ -38,10 +38,6 @@ class SimpleFixedObject implements FixedOffHeapObject {
 
     @Override
     public void reset() {
-        // 清零内存
-        if (address != 0) {
-            UNSAFE.setMemory(address, 64, (byte) 0);
-        }
     }
 
     @Override

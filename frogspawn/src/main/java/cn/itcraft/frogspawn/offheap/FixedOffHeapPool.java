@@ -8,8 +8,8 @@ import java.lang.reflect.Array;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 固定非堆对象池
- * Fixed off-heap object pool
+ * 固定非堆对象池 - 极简优化版
+ * Fixed off-heap object pool - Minimal optimized
  *
  * @author Helly Guo
  * Created on 2026-03-24
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMemoryPool<T> {
 
     private static final Unsafe UNSAFE = UnsafeUtil.getTheUnsafe();
-    private static final int LOCAL_STACK_SIZE = 64;
+    private static final int CACHE_SIZE = 64;
 
     private final ObjectCreator<T> creator;
     private final T[] objects;
@@ -25,17 +25,21 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
     private final int objectSize;
     private final long memoryBlock;
 
-    private final int[] sharedStack;
-    private final AtomicInteger sharedCount;
+    private final AtomicInteger stackTop = new AtomicInteger(0);
+    private final int[] stack;
 
-    private final ThreadLocal<LocalCache> localCache;
+    private static class LocalCache {
+        final int[] indices = new int[CACHE_SIZE];
+        int count = 0;
+    }
+
+    private final ThreadLocal<LocalCache> localCache = ThreadLocal.withInitial(LocalCache::new);
 
     @SuppressWarnings("unchecked")
     public FixedOffHeapPool(ObjectCreator<T> creator, int capacity, int objectSize) {
         this.creator = creator;
         this.capacity = capacity;
         this.objectSize = objectSize;
-
         this.memoryBlock = UNSAFE.allocateMemory((long) capacity * objectSize);
 
         T sample = creator.create();
@@ -52,87 +56,91 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
             objects[i] = obj;
         }
 
-        this.sharedStack = new int[capacity];
+        this.stack = new int[capacity];
         for (int i = 0; i < capacity; i++) {
-            sharedStack[i] = i;
+            stack[i] = i;
         }
-        this.sharedCount = new AtomicInteger(capacity);
-
-        this.localCache = ThreadLocal.withInitial(LocalCache::new);
+        this.stackTop.set(capacity);
     }
 
     @Override
     public T fetch() {
         LocalCache cache = localCache.get();
         
-        if (cache.size > 0) {
-            cache.size--;
-            return objects[cache.stack[cache.size]];
+        if (cache.count > 0) {
+            cache.count--;
+            return objects[cache.indices[cache.count]];
         }
 
-        if (refillLocalStack(cache)) {
-            cache.size--;
-            return objects[cache.stack[cache.size]];
+        int top = stackTop.get();
+        if (top <= 0) {
+            return creator.create();
         }
 
+        int toFetch = Math.min(CACHE_SIZE, top);
+        int newTop = top - toFetch;
+        
+        if (stackTop.compareAndSet(top, newTop)) {
+            for (int i = 0; i < toFetch; i++) {
+                cache.indices[i] = stack[newTop + i];
+            }
+            cache.count = toFetch - 1;
+            return objects[cache.indices[toFetch - 1]];
+        }
+        
+        return fetchSlowPath();
+    }
+
+    private T fetchSlowPath() {
+        LocalCache cache = localCache.get();
+        
+        for (int retry = 0; retry < 10; retry++) {
+            int top = stackTop.get();
+            if (top <= 0) {
+                return creator.create();
+            }
+
+            int toFetch = Math.min(CACHE_SIZE, top);
+            int newTop = top - toFetch;
+            
+            if (stackTop.compareAndSet(top, newTop)) {
+                for (int i = 0; i < toFetch; i++) {
+                    cache.indices[i] = stack[newTop + i];
+                }
+                cache.count = toFetch - 1;
+                return objects[cache.indices[toFetch - 1]];
+            }
+        }
         return creator.create();
     }
 
     @Override
     public void release(T obj) {
-        if (obj == null) {
-            return;
-        }
+        if (obj == null) return;
         
         obj.reset();
 
         LocalCache cache = localCache.get();
 
-        if (cache.size < LOCAL_STACK_SIZE) {
-            cache.stack[cache.size] = obj.index();
-            cache.size++;
+        if (cache.count < CACHE_SIZE) {
+            cache.indices[cache.count] = obj.index();
+            cache.count++;
+            return;
+        }
+
+        int top = stackTop.get();
+        int canPut = capacity - top;
+        int toPut = Math.min(CACHE_SIZE, canPut);
+        
+        if (toPut > 0 && stackTop.compareAndSet(top, top + toPut)) {
+            for (int i = 0; i < toPut; i++) {
+                stack[top + i] = cache.indices[CACHE_SIZE - 1 - i];
+            }
+            cache.count = CACHE_SIZE - toPut;
+            cache.indices[cache.count] = obj.index();
+            cache.count++;
         } else {
-            flushLocalStack(cache);
-            cache.stack[0] = obj.index();
-            cache.size = 1;
-        }
-    }
-
-    private boolean refillLocalStack(LocalCache cache) {
-        int toFetch = Math.min(LOCAL_STACK_SIZE / 2, sharedCount.get());
-
-        if (toFetch <= 0) return false;
-
-        while (true) {
-            int current = sharedCount.get();
-            if (current <= 0) return false;
-
-            int fetch = Math.min(toFetch, current);
-            if (sharedCount.compareAndSet(current, current - fetch)) {
-                for (int i = 0; i < fetch; i++) {
-                    cache.stack[i] = sharedStack[current - 1 - i];
-                }
-                cache.size = fetch;
-                return true;
-            }
-        }
-    }
-
-    private void flushLocalStack(LocalCache cache) {
-        int count = cache.size;
-
-        while (true) {
-            int current = sharedCount.get();
-            if (current >= capacity) return;
-
-            int toFlush = Math.min(count, capacity - current);
-            if (sharedCount.compareAndSet(current, current + toFlush)) {
-                for (int i = 0; i < toFlush; i++) {
-                    sharedStack[current + i] = cache.stack[count - 1 - i];
-                }
-                cache.size = count - toFlush;
-                return;
-            }
+            cache.indices[CACHE_SIZE - 1] = obj.index();
         }
     }
 
@@ -141,11 +149,6 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
     }
 
     public int getAvailableCount() {
-        return sharedCount.get();
-    }
-
-    private static class LocalCache {
-        final int[] stack = new int[LOCAL_STACK_SIZE];
-        int size = 0;
+        return stackTop.get();
     }
 }
