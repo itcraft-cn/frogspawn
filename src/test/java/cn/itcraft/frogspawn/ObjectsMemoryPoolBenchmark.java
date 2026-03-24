@@ -20,19 +20,25 @@ import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
 import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.Threads;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-import org.openjdk.jmh.profile.GCProfiler;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.runner.options.TimeValue;
 
 import java.util.concurrent.TimeUnit;
 
+@BenchmarkMode({Mode.Throughput})
+@Fork(value = 3, jvmArgs = {"-Xmx4G", "-Xms4G", "-Xmn2G", "-Dfrogspawn.cache.capacity=64", "-XX:-RestrictContended"})
+@Threads(value = 1)
+@Warmup(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 10, time = 10, timeUnit = TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
 public class ObjectsMemoryPoolBenchmark {
 
@@ -40,28 +46,6 @@ public class ObjectsMemoryPoolBenchmark {
             = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), 3000,
                                                new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW,
                                                                 FetchFailStrategy.CALL_CREATOR, true));
-
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(ObjectsMemoryPoolBenchmark.class.getSimpleName())
-                .mode(Mode.Throughput)
-                .forks(3)
-                .threads(1)
-                .warmupIterations(5)
-                .warmupTime(TimeValue.milliseconds(100))
-                .measurementIterations(10)
-                .measurementTime(TimeValue.milliseconds(10))
-                .timeUnit(TimeUnit.MICROSECONDS)
-                .jvmArgs("-Xmx4G", "-Xms4G", "-Xmn2G", "-Dfrogspawn.cache.capacity=64", "-XX:-RestrictContended")
-                .addProfiler(GCProfiler.class)
-                //.addProfiler(StackProfiler.class)
-                //.addProfiler(CompilerProfiler.class)
-                //.addProfiler(LinuxPerfNormProfiler.class)
-                //.addProfiler(LinuxPerfNormProfiler.class).verbosity(VerboseMode.EXTRA)
-                .build();
-
-        new Runner(opt).run();
-    }
 
     @Benchmark
     public void testFetchAndRelease(Blackhole blackhole) {
