@@ -1,5 +1,7 @@
 package cn.itcraft.frogspawn.offheap;
 
+import java.util.Arrays;
+
 /**
  * 大型复杂对象 - 堆内存版本
  * Huge complex object - Heap version
@@ -48,9 +50,9 @@ public class HugeHeapObject implements cn.itcraft.frogspawn.Resettable {
         field11 = field12 = field13 = field14 = field15 = 0;
         field16 = field17 = field18 = field19 = field20 = 0;
         field21 = field22 = field23 = field24 = field25 = 0.0;
-        for (int i = 0; i < longArray.length; i++) longArray[i] = 0;
-        for (int i = 0; i < intArray.length; i++) intArray[i] = 0;
-        for (int i = 0; i < byteArray.length; i++) byteArray[i] = 0;
+        Arrays.fill(longArray, 0);
+        Arrays.fill(intArray, 0);
+        Arrays.fill(byteArray, (byte) 0);
     }
 
     @Override
