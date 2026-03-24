@@ -41,8 +41,11 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
     /**
      * 线程本地存储的栈式缓存，用于快速对象存取
      * Thread-local stack cache for fast object access
+     * 
+     * 每个池实例有独立的 ThreadLocal cache，避免不同类型对象混合
+     * Each pool instance has its own ThreadLocal cache to avoid mixing different types
      */
-    private static final ThreadLocal<SimpleStackCache<Resettable>> LOCAL_QUEUE =
+    private final ThreadLocal<SimpleStackCache<Resettable>> localQueue =
             ThreadLocal.withInitial(SimpleStackCache::new);
 
     /**
@@ -134,7 +137,7 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
     @Override
     @SuppressWarnings("unchecked")
     public T fetch() {
-        T t = (T) LOCAL_QUEUE.get().fetch();
+        T t = (T) localQueue.get().fetch();
         if (t == null || t.isInvalid()) {
             // 缓存未命中时从主池获取 / Fetch from the main pool when cache missed
             return fetcher.fetch();
@@ -179,7 +182,7 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
      */
     @Override
     public void release(T used) {
-        if (LOCAL_QUEUE.get().release(used)) {
+        if (localQueue.get().release(used)) {
             // 成功释放后执行后续处理 / Perform post-release processing
             wrapRelease(used);
         }
