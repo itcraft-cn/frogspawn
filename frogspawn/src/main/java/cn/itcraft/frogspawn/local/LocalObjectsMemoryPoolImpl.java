@@ -22,7 +22,7 @@ import cn.itcraft.frogspawn.Resettable;
 import cn.itcraft.frogspawn.constants.Constants;
 import cn.itcraft.frogspawn.data.WrappedResettable;
 import cn.itcraft.frogspawn.misc.PaddedAtomicLong;
-import cn.itcraft.frogspawn.misc.SoftRefStore;
+import cn.itcraft.frogspawn.misc.SimpleStackCache;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
@@ -39,11 +39,11 @@ import cn.itcraft.frogspawn.util.ArrayUtil;
 public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
 
     /**
-     * 线程本地存储的软引用队列，用于快速对象存取
-     * Thread-local soft reference store for fast object access
+     * 线程本地存储的栈式缓存，用于快速对象存取
+     * Thread-local stack cache for fast object access
      */
-    private static final ThreadLocal<SoftRefStore<Resettable>> LOCAL_QUEUE =
-            ThreadLocal.withInitial(SoftRefStore::new);
+    private static final ThreadLocal<SimpleStackCache<Resettable>> LOCAL_QUEUE =
+            ThreadLocal.withInitial(SimpleStackCache::new);
 
     /**
      * 原子指针，用于环形数组的遍历访问

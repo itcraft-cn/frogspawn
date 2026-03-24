@@ -32,20 +32,18 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
     /**
      * 内存池相关字段
      */
-    // 每个槽位64字节
-    private static final int SLOT_SIZE = 64;
-    // 4MB内存池
-    private static final int MEMORY_POOL_SIZE = 4 * 1024 * 1024;
-    // 65536个槽位
+    private static final int SLOT_SIZE = Integer.getInteger("frogspawn.offheap.slot.size", 64);
+    private static final int MEMORY_POOL_SIZE = Integer.getInteger("frogspawn.offheap.pool.size", 4 * 1024 * 1024);
     private static final int SLOT_COUNT = MEMORY_POOL_SIZE / SLOT_SIZE;
-    // 每次从内存池获取的槽位数量
-    private static final int MEMORY_CACHE_BATCH_SIZE = 64;
+    private static final int MEMORY_CACHE_BATCH_SIZE = Integer.getInteger("frogspawn.offheap.batch.size", 64);
 
     // 内存池起始地址
-    private final long memoryPoolAddress;
+    private volatile long memoryPoolAddress;
     // 可用槽位栈
     private final long[] freeSlots;
     private final AtomicInteger freeSlotCount = new AtomicInteger(0); // 可用槽位数量
+    // 内存池是否已销毁
+    private volatile boolean destroyed = false;
 
     /**
      * 线程本地内存缓存，每个线程维护一个内存地址栈
@@ -112,10 +110,13 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         // 3. 检查对象是否已有内存地址（来自线程本地缓存）
         long existingAddress = obj.getAddress();
         if (existingAddress != 0) {
-            // 对象已有内存地址，跳过内存分配
+            // 对象已有内存地址，检查数组地址是否也已设置
+            boolean hasArrayAddresses = hasArrayAddresses(obj);
             try {
-                // 仍需要为数组字段分配内存（如果尚未分配）
-                allocateArrayMemory(obj);
+                if (!hasArrayAddresses) {
+                    // 数组地址未设置，需要分配
+                    allocateArrayMemory(obj);
+                }
                 // 将对象数据写入内存
                 obj.writeToMemory();
                 return obj;
@@ -290,6 +291,22 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
     }
 
     /**
+     * 检查对象是否已有数组地址
+     */
+    private boolean hasArrayAddresses(T obj) {
+        int arrayFieldCount = obj.getArrayFieldCount();
+        if (arrayFieldCount == 0) {
+            return true;
+        }
+        for (int i = 0; i < arrayFieldCount; i++) {
+            if (obj.getArrayAddress(i) == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * 估算数组大小（简化实现）
      * 实际实现中，对象应该知道数组元素类型和大小
      */
@@ -376,16 +393,46 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
     }
 
     /**
+     * 销毁内存池，释放所有资源
+     * Destroy the memory pool and release all resources
+     */
+    public void destroy() {
+        if (destroyed) {
+            return;
+        }
+        destroyed = true;
+        long addr = memoryPoolAddress;
+        memoryPoolAddress = 0;
+        if (addr != 0) {
+            UNSAFE.freeMemory(addr);
+        }
+        totalAllocatedMemory.set(0);
+    }
+
+    /**
+     * 检查内存池是否已销毁
+     * Check if the memory pool is destroyed
+     */
+    public boolean isDestroyed() {
+        return destroyed;
+    }
+
+    /**
      * 线程本地缓存实现
      */
     private static class ThreadLocalCache {
+        private static final int MAX_ARRAY_FIELDS = 8;
         private final Object[] cache;
-        private final long[] memoryAddresses; // 保存对象的内存地址，避免重复分配
+        private final long[] memoryAddresses;
+        private final long[][] arrayAddresses;
+        private final int[] arrayFieldCounts;
         private int size;
 
         ThreadLocalCache() {
             this.cache = new Object[THREAD_LOCAL_CACHE_SIZE];
             this.memoryAddresses = new long[THREAD_LOCAL_CACHE_SIZE];
+            this.arrayAddresses = new long[THREAD_LOCAL_CACHE_SIZE][];
+            this.arrayFieldCounts = new int[THREAD_LOCAL_CACHE_SIZE];
             this.size = 0;
         }
 
@@ -400,10 +447,20 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
             size--;
             T obj = (T) cache[size];
             long address = memoryAddresses[size];
-            cache[size] = null; // 清除引用避免内存泄漏
+            long[] arrAddr = arrayAddresses[size];
+            int arrCount = arrayFieldCounts[size];
+            cache[size] = null;
             memoryAddresses[size] = 0;
+            arrayAddresses[size] = null;
+            arrayFieldCounts[size] = 0;
             if (obj instanceof PrimitiveStructure) {
-                ((PrimitiveStructure) obj).setAddress(address);
+                PrimitiveStructure ps = (PrimitiveStructure) obj;
+                ps.setAddress(address);
+                if (arrAddr != null && arrCount > 0) {
+                    for (int i = 0; i < Math.min(arrCount, arrAddr.length); i++) {
+                        ps.setArrayAddress(i, arrAddr[i]);
+                    }
+                }
             }
             return obj;
         }
@@ -416,11 +473,23 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
                 return false;
             }
             long address = 0;
+            long[] arrAddr = null;
+            int arrCount = 0;
             if (obj instanceof PrimitiveStructure) {
-                address = ((PrimitiveStructure) obj).getAddress();
+                PrimitiveStructure ps = (PrimitiveStructure) obj;
+                address = ps.getAddress();
+                arrCount = ps.getArrayFieldCount();
+                if (arrCount > 0) {
+                    arrAddr = new long[arrCount];
+                    for (int i = 0; i < arrCount; i++) {
+                        arrAddr[i] = ps.getArrayAddress(i);
+                    }
+                }
             }
             cache[size] = obj;
             memoryAddresses[size] = address;
+            arrayAddresses[size] = arrAddr;
+            arrayFieldCounts[size] = arrCount;
             size++;
             return true;
         }
