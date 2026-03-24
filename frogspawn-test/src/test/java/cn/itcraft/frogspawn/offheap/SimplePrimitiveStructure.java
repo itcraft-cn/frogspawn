@@ -13,12 +13,12 @@ class SimplePrimitiveStructure implements PrimitiveStructure {
     private final int[] arrayLengths = new int[0];
 
     @Override
-    public long getAddress() {
+    public final long getAddress() {
         return address;
     }
 
     @Override
-    public void setAddress(long address) {
+    public final void setAddress(long address) {
         this.address = address;
     }
 
@@ -29,38 +29,41 @@ class SimplePrimitiveStructure implements PrimitiveStructure {
     }
 
     @Override
-    public int getObjectSize() {
-        return 8; // 只包含address字段
+    public final int getObjectSize() {
+        return 8;
     }
 
     @Override
-    public int getArrayFieldCount() {
-        return 0; // 没有数组字段
+    public final int getArrayFieldCount() {
+        return 0;
     }
 
     @Override
-    public long getArrayAddress(int index) {
+    public final long getArrayAddress(int index) {
         return arrayAddresses[index];
     }
 
     @Override
-    public void setArrayAddress(int index, long address) {
+    public final void setArrayAddress(int index, long address) {
         arrayAddresses[index] = address;
     }
 
     @Override
-    public int getArrayLength(int index) {
+    public final int getArrayLength(int index) {
         return arrayLengths[index];
     }
 
     @Override
     public void writeToMemory() {
-        // 空实现，因为没有数据需要写入
     }
 
     @Override
     public void readFromMemory() {
-        // 空实现，因为没有数据需要读取
+    }
+
+    @Override
+    public boolean hasDataToWrite() {
+        return false;
     }
 
     @Override

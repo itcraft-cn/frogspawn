@@ -63,4 +63,18 @@ public interface PrimitiveStructure extends Resettable {
      * 应该从对象内存读取基本类型字段，从数组内存读取数组数据
      */
     void readFromMemory();
+    
+    /**
+     * 检查对象是否有数据需要写入内存
+     * 用于优化：空实现可以跳过 writeToMemory() 调用
+     * 
+     * Check if object has data to write to memory
+     * For optimization: empty implementations can skip writeToMemory() call
+     * 
+     * @return true-需要写入内存 false-无需写入
+     *         true-need to write to memory false-no need
+     */
+    default boolean hasDataToWrite() {
+        return true;
+    }
 }
