@@ -1,6 +1,6 @@
 package cn.itcraft.frogspawn;
 
-import cn.itcraft.frogspawn.misc.SoftRefStoreTest;
+import cn.itcraft.frogspawn.misc.SimpleStackCacheTest;
 import cn.itcraft.frogspawn.util.ArrayUtilTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
@@ -14,7 +14,7 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
         HeapObjectsMemoryPoolTest.class,
         HeapObjectsMemoryPool2Test.class,
-        SoftRefStoreTest.class,
+        SimpleStackCacheTest.class,
         ArrayUtilTest.class
 })
 public class FrogspawnSuite {
