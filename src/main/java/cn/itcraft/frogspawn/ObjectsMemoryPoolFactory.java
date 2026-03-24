@@ -47,7 +47,7 @@ public final class ObjectsMemoryPoolFactory {
      */
     public static <T extends Resettable> ObjectsMemoryPool<T> newPool(ObjectCreator<T> creator, int size) {
         return newPool(creator, size,
-                       new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR, false));
+                       new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW, FetchFailStrategy.CALL_CREATOR));
     }
 
     /**

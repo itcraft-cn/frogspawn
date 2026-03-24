@@ -39,30 +39,30 @@ import cn.itcraft.frogspawn.util.ArrayUtil;
 public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
 
     /**
-     * 线程本地存储的栈式队列，用于快速对象存取
-     * Thread-local soft reference store for fast object access
+     * 线程本地存储的栈式缓存，用于快速对象存取
+     * Thread-local stack cache for fast object access
      */
-    protected static final ThreadLocal<SimpleStackCache<Resettable>> LOCAL_QUEUE =
+    private static final ThreadLocal<SimpleStackCache<Resettable>> LOCAL_QUEUE =
             ThreadLocal.withInitial(SimpleStackCache::new);
 
     /**
      * 原子指针，用于环形数组的遍历访问
      * Atomic pointer for circular array traversal
      */
-    protected final PaddedAtomicLong walker = new PaddedAtomicLong(0);
+    private final PaddedAtomicLong walker = new PaddedAtomicLong(0);
 
     /**
      * 核心存储数组，包装可重置对象
      * Core storage array wrapping resettable objects
      */
     @SuppressWarnings("rawtypes")
-    protected final WrappedResettable[] array;
+    private final WrappedResettable[] array;
 
     /**
      * 下标掩码，用于快速计算环形数组索引
      * Index mask for fast circular array index calculation
      */
-    protected final int indexMask;
+    private final int indexMask;
 
     /**
      * 对象创建器，用于生成新的池对象实例
@@ -79,8 +79,6 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
     private final FetchFailStrategy fetchFailStrategy;
 
     private final Fetcher<T> fetcher;
-    private final Fetcher<T> fetcherActual;
-    private final Releaser<T> releaser;
 
     /**
      * 构造方法，初始化对象池
@@ -88,6 +86,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      *
      * @param creator 对象创建器 / Object creator
      * @param size    初始容量 / Initial capacity
+     * @param poolStrategy 池策略 / Pool strategy
      */
     public ObjectsMemoryPoolImpl(ObjectCreator<T> creator, int size, PoolStrategy poolStrategy) {
         // 计算最接近的2的幂次方容量
@@ -114,75 +113,31 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
             array[i] = wrapped;
         }
         this.creator = creator;
-        if (poolStrategy.isPrefetch()) {
-            this.fetcher = this::fetchWithPrefetch;
-            this.releaser = this::releaseDirect;
-        } else {
-            this.fetcher = this::fetchWithCache;
-            this.releaser = this::releaseLocalFirst;
-        }
         if (FetchStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy.getFetchStrategy())) {
+            this.fetcher = this::fetchDataWithLoop;
             this.fetchFailStrategy = null;
-            this.fetcherActual = this::fetchDataWithLoop;
         } else {
+            this.fetcher = this::fetchDataWithTimes;
             this.fetchFailStrategy = poolStrategy.getFetchFailStrategy();
-            this.fetcherActual = this::fetchDataWithTimes;
         }
     }
 
     /**
      * 从池中获取可用对象（核心方法）
      * Fetch an available object from the pool (core method)
+     * 获取对象（优先从线程本地缓存获取）
+     * Fetch object (preferentially from thread-local cache)
      *
      * @return 可复用的对象实例
      * Reusable object instance
      */
     @Override
-    public T fetch() {
-        return fetcher.fetch();
-    }
-
-    /**
-     * 获取对象（优先从线程本地缓存获取）
-     * Fetch object (preferentially from thread-local cache)
-     */
     @SuppressWarnings("unchecked")
-    private T fetchWithCache() {
+    public T fetch() {
         T t = (T) LOCAL_QUEUE.get().fetch();
         if (t == null || t.isInvalid()) {
             // 缓存未命中时从主池获取 / Fetch from the main pool when cache missed
-            return fetchDataWithTimes();
-        }
-        return t;
-    }
-
-    /**
-     * 从池中获取可用对象（核心方法）
-     * Fetch an available object from the pool (core method)
-     *
-     * @return 可复用的对象实例
-     * Reusable object instance
-     */
-    @SuppressWarnings("unchecked")
-    private T fetchWithPrefetch() {
-        // 获取线程栈式存储
-        // Get thread-local soft reference store
-        SimpleStackCache<Resettable> stackCache = LOCAL_QUEUE.get();
-
-        // 尝试从本地队列获取对象
-        // Attempt to get object from local queue
-        T t = (T) stackCache.fetch();
-
-        // 对象无效或不存在时的处理逻辑
-        // Handle case when object is invalid or not found
-        if (t == null || t.isInvalid()) {
-            // 从数据源获取新对象
-            // Fetch new object from data source
-            t = fetcherActual.fetch();
-
-            // 触发预取机制补充缓存
-            // Trigger prefetch mechanism to replenish cache
-            prefetch(stackCache);
+            return fetcher.fetch();
         }
         return t;
     }
@@ -191,7 +146,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 从主池获取对象的具体实现
      * concrete implementation for fetching from main pool
      */
-    protected T fetchDataWithTimes() {
+    private T fetchDataWithTimes() {
         return FetchHelper.fetchDataOrFailover(
                 // 对象存储数组 | Object storage array
                 array,
@@ -209,72 +164,25 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 从主池获取对象的具体实现
      * concrete implementation for fetching from main pool
      */
-    protected T fetchDataWithLoop() {
+    private T fetchDataWithLoop() {
         return FetchHelper.loopFetchData(array, indexMask, walker);
-    }
-
-    /**
-     * 预填充缓存队列（私有工具方法）
-     * Prefill the cache queue (private utility method)
-     *
-     * @param stackCache 线程本地栈式存储对象
-     *                   Thread-local soft reference store object
-     */
-    private void prefetch(SimpleStackCache<Resettable> stackCache) {
-        // 当缓存为空时进行预填充
-        // Prefill when cache is empty
-        if (stackCache.isEmpty()) {
-            // 按照预设容量填充缓存
-            // Fill cache according to predefined capacity
-            for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
-                // 获取新对象并放入缓存
-                // Fetch new object and add to cache
-                T t = fetcherActual.fetch();
-                if (t == null) {
-                    break;
-                } else {
-                    stackCache.release(t);
-                }
-            }
-        }
     }
 
     /**
      * 释放并回收对象到池中（核心方法）
      * Release and recycle object back to pool (core method)
+     * 释放对象到线程本地缓存
+     * Release object back to thread-local cache
      *
      * @param used 已使用的对象实例
      *             Used object instance
      */
     @Override
     public void release(T used) {
-        releaser.release(used);
-    }
-
-    /**
-     * 释放对象到线程本地缓存
-     * Release object back to thread-local cache
-     *
-     * @param used 已使用的对象 / The used object to release
-     */
-    private void releaseLocalFirst(T used) {
         if (LOCAL_QUEUE.get().release(used)) {
             // 成功释放后执行后续处理 / Perform post-release processing
             wrapRelease(used);
         }
-    }
-
-    /**
-     * 释放并回收对象到池中（核心方法）
-     * Release and recycle object back to pool (core method)
-     *
-     * @param used 已使用的对象实例
-     *             Used object instance
-     */
-    private void releaseDirect(T used) {
-        // 执行实际的释放操作
-        // Perform actual release operation
-        wrapRelease(used);
     }
 
     /**
@@ -283,7 +191,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      *
      * @param used 已释放的对象 / The released object
      */
-    protected void wrapRelease(T used) {
+    private void wrapRelease(T used) {
         // 重置对象状态 / Reset object state
         used.reset();
         int id = used.getMarkedId();
