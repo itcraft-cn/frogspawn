@@ -35,12 +35,12 @@ import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode({Mode.Throughput})
 @Fork(value = 3, jvmArgs = {"-Xmx4G", "-Xms4G", "-Xmn2G", "-Dfrogspawn.cache.capacity=64", "-XX:-RestrictContended"})
-@Threads(value = 1)
+@Threads(value = 16)
 @Warmup(iterations = 5, time = 100, timeUnit = TimeUnit.MILLISECONDS)
 @Measurement(iterations = 10, time = 10, timeUnit = TimeUnit.MILLISECONDS)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @State(Scope.Benchmark)
-public class ObjectsMemoryPoolBenchmark {
+public class MultiObjectsMemoryPoolBenchmark {
 
     private static final ObjectsMemoryPool<DemoPojo> POOL =
             ObjectsMemoryPoolFactory
