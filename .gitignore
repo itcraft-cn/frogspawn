@@ -10,8 +10,5 @@ target
 .factorypath
 *.iml
 
-.project
-.classpath
-.settings
-
 MEMORY.md
+
