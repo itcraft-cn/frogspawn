@@ -260,6 +260,14 @@ public class UnifiedPerformanceTest {
     private static GcTestResult testSmallGcFixed(ObjectsMemoryPool<SimpleFixedObject> pool, int objects, int iterations) {
         SimpleFixedObject[] objArray = new SimpleFixedObject[objects];
         
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = pool.fetch();
+        }
+        for (int i = 0; i < objects; i++) {
+            pool.release(objArray[i]);
+        }
+        
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
         
@@ -281,6 +289,14 @@ public class UnifiedPerformanceTest {
     private static GcTestResult testSmallGcHeap(ObjectsMemoryPool<SimplePrimitiveStructure> pool, int objects, int iterations) {
         SimplePrimitiveStructure[] objArray = new SimplePrimitiveStructure[objects];
         
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = pool.fetch();
+        }
+        for (int i = 0; i < objects; i++) {
+            pool.release(objArray[i]);
+        }
+        
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
         
@@ -301,6 +317,11 @@ public class UnifiedPerformanceTest {
     
     private static GcTestResult testSmallGcNew(int objects, int iterations) {
         SimplePrimitiveStructure[] objArray = new SimplePrimitiveStructure[objects];
+        
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = new SimplePrimitiveStructure();
+        }
         
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
@@ -419,6 +440,15 @@ public class UnifiedPerformanceTest {
     private static GcTestResult testLargeGcFixed(ObjectsMemoryPool<HugeFixedOffHeapObject> pool, int objects, int iterations) {
         HugeFixedOffHeapObject[] objArray = new HugeFixedOffHeapObject[objects];
         
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = pool.fetch();
+            objArray[i].setData(i, i + 1, i * 2, i * 3, i * 0.5);
+        }
+        for (int i = 0; i < objects; i++) {
+            pool.release(objArray[i]);
+        }
+        
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
         
@@ -441,6 +471,15 @@ public class UnifiedPerformanceTest {
     private static GcTestResult testLargeGcHeap(ObjectsMemoryPool<HugeHeapObject> pool, int objects, int iterations) {
         HugeHeapObject[] objArray = new HugeHeapObject[objects];
         
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = pool.fetch();
+            objArray[i].setData(i, i + 1, i * 2, i * 3, i * 0.5);
+        }
+        for (int i = 0; i < objects; i++) {
+            pool.release(objArray[i]);
+        }
+        
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
         
@@ -462,6 +501,12 @@ public class UnifiedPerformanceTest {
     
     private static GcTestResult testLargeGcNew(int objects, int iterations) {
         HugeHeapObject[] objArray = new HugeHeapObject[objects];
+        
+        // 预热一轮
+        for (int i = 0; i < objects; i++) {
+            objArray[i] = new HugeHeapObject();
+            objArray[i].setData(i, i + 1, i * 2, i * 3, i * 0.5);
+        }
         
         long gcBefore = getGcCount();
         long startTime = System.nanoTime();
