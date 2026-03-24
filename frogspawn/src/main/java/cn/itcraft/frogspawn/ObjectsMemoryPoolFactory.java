@@ -17,6 +17,8 @@
 package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.local.LocalObjectsMemoryPoolImpl;
+import cn.itcraft.frogspawn.offheap.FixedOffHeapObject;
+import cn.itcraft.frogspawn.offheap.FixedOffHeapPool;
 import cn.itcraft.frogspawn.offheap.OffHeapObjectsMemoryPoolImpl;
 import cn.itcraft.frogspawn.offheap.PrimitiveStructure;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
@@ -83,5 +85,30 @@ public final class ObjectsMemoryPoolFactory {
      */
     public static <T extends PrimitiveStructure> ObjectsMemoryPool<T> newOffHeapPool(ObjectCreator<T> creator) {
         return new OffHeapObjectsMemoryPoolImpl<>(creator);
+    }
+
+    /**
+     * 创建固定非堆内存对象池
+     * Create fixed off-heap memory object pool
+     * 
+     * 特点：
+     * - 预创建所有对象，零创建开销
+     * - 固定内存块，零内存分配开销
+     * - 纯索引操作，最高性能
+     * 
+     * Features:
+     * - Pre-create all objects, zero creation overhead
+     * - Fixed memory block, zero allocation overhead
+     * - Pure index operations, highest performance
+     *
+     * @param creator    对象创建器 / Object creator
+     * @param capacity   池容量 / Pool capacity
+     * @param objectSize 对象大小（字节） / Object size in bytes
+     * @param <T>        必须实现 FixedOffHeapObject 接口的类型 / Type must implement FixedOffHeapObject interface
+     * @return 固定非堆内存池实例 / Fixed off-heap memory pool instance
+     */
+    public static <T extends FixedOffHeapObject> ObjectsMemoryPool<T> newFixedOffHeapPool(
+            ObjectCreator<T> creator, int capacity, int objectSize) {
+        return new FixedOffHeapPool<>(creator, capacity, objectSize);
     }
 }
