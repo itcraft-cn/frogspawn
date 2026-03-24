@@ -41,11 +41,11 @@ import org.junit.jupiter.api.Test;
  * <p>
  * Created on 12/8/21 7:13 PM
  */
-public class SoftRefStoreTest {
+public class SimpleStackCacheTest {
 
     @Test
     public void test() {
-        SoftRefStore<DemoPojo> queue = new SoftRefStore<>();
+        SimpleStackCache<DemoPojo> queue = new SimpleStackCache<>();
         for (int i = 0; i < 100; i++) {
             queue.release(new DemoPojo());
         }

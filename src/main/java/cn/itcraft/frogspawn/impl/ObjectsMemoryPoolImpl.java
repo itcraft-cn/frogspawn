@@ -22,7 +22,7 @@ import cn.itcraft.frogspawn.Resettable;
 import cn.itcraft.frogspawn.constants.Constants;
 import cn.itcraft.frogspawn.data.WrappedResettable;
 import cn.itcraft.frogspawn.misc.PaddedAtomicLong;
-import cn.itcraft.frogspawn.misc.SoftRefStore;
+import cn.itcraft.frogspawn.misc.SimpleStackCache;
 import cn.itcraft.frogspawn.strategy.FetchFailStrategy;
 import cn.itcraft.frogspawn.strategy.FetchStrategy;
 import cn.itcraft.frogspawn.strategy.PoolStrategy;
@@ -39,11 +39,11 @@ import cn.itcraft.frogspawn.util.ArrayUtil;
 public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemoryPool<T> {
 
     /**
-     * 线程本地存储的软引用队列，用于快速对象存取
+     * 线程本地存储的栈式队列，用于快速对象存取
      * Thread-local soft reference store for fast object access
      */
-    protected static final ThreadLocal<SoftRefStore<Resettable>> LOCAL_QUEUE =
-            ThreadLocal.withInitial(SoftRefStore::new);
+    protected static final ThreadLocal<SimpleStackCache<Resettable>> LOCAL_QUEUE =
+            ThreadLocal.withInitial(SimpleStackCache::new);
 
     /**
      * 原子指针，用于环形数组的遍历访问
@@ -165,13 +165,13 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      */
     @SuppressWarnings("unchecked")
     private T fetchWithPrefetch() {
-        // 获取线程本地软引用存储
+        // 获取线程栈式存储
         // Get thread-local soft reference store
-        SoftRefStore<Resettable> softRefStore = LOCAL_QUEUE.get();
+        SimpleStackCache<Resettable> stackCache = LOCAL_QUEUE.get();
 
         // 尝试从本地队列获取对象
         // Attempt to get object from local queue
-        T t = (T) softRefStore.fetch();
+        T t = (T) stackCache.fetch();
 
         // 对象无效或不存在时的处理逻辑
         // Handle case when object is invalid or not found
@@ -182,7 +182,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
 
             // 触发预取机制补充缓存
             // Trigger prefetch mechanism to replenish cache
-            prefetch(softRefStore);
+            prefetch(stackCache);
         }
         return t;
     }
@@ -217,13 +217,13 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
      * 预填充缓存队列（私有工具方法）
      * Prefill the cache queue (private utility method)
      *
-     * @param softRefStore 线程本地软引用存储对象
-     *                     Thread-local soft reference store object
+     * @param stackCache 线程本地栈式存储对象
+     *                   Thread-local soft reference store object
      */
-    private void prefetch(SoftRefStore<Resettable> softRefStore) {
+    private void prefetch(SimpleStackCache<Resettable> stackCache) {
         // 当缓存为空时进行预填充
         // Prefill when cache is empty
-        if (softRefStore.isEmpty()) {
+        if (stackCache.isEmpty()) {
             // 按照预设容量填充缓存
             // Fill cache according to predefined capacity
             for (int i = 0; i < Constants.CACHE_CAPACITY; i++) {
@@ -233,7 +233,7 @@ public class ObjectsMemoryPoolImpl<T extends Resettable> implements ObjectsMemor
                 if (t == null) {
                     break;
                 } else {
-                    softRefStore.release(t);
+                    stackCache.release(t);
                 }
             }
         }

@@ -45,7 +45,7 @@ public class ObjectsMemoryPoolBenchmark {
     private static final ObjectsMemoryPool<DemoPojo> POOL
             = ObjectsMemoryPoolFactory.newPool(new DemoPojoCreator(), 3000,
                                                new PoolStrategy(FetchStrategy.FETCH_FAIL_AS_NEW,
-                                                                FetchFailStrategy.CALL_CREATOR, true));
+                                                                FetchFailStrategy.CALL_CREATOR, false));
 
     @Benchmark
     public void testFetchAndRelease(Blackhole blackhole) {
