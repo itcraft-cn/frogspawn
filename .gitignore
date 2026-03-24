@@ -3,7 +3,11 @@
 build
 out
 target
+.settings
 
+.classpath
+.project
+.factorypath
 *.iml
 
 .project
