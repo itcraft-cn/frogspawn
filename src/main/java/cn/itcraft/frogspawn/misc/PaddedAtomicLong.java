@@ -16,6 +16,8 @@
  */
 package cn.itcraft.frogspawn.misc;
 
+import sun.misc.Contended;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -44,6 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * - High-performance concurrent data structures (e.g., lock-free queue pointers)
  * - Performance metrics requiring precise measurement (e.g., latency stats, throughput stats)
  */
+@Contended
 public class PaddedAtomicLong extends AtomicLong {
 
     /**
