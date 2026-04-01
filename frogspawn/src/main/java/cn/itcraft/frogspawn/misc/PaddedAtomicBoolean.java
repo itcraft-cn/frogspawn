@@ -16,6 +16,8 @@
  */
 package cn.itcraft.frogspawn.misc;
 
+import sun.misc.Contended;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -38,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * annotation triggers JVM automatic memory padding (default 128 bytes),
  * requires JVM parameter -XX:-RestrictContended
  */
+@Contended
 public class PaddedAtomicBoolean extends AtomicBoolean {
 
     /**
