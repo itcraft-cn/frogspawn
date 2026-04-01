@@ -5,7 +5,7 @@
 
     <groupId>cn.itcraft</groupId>
     <artifactId>frogspawn</artifactId>
-    <version>0.5</version>
+    <version>0.5</version> <!-- managed by updgitver -->
 
     <name>frogspawn</name>
     <description>A java object pool, focus on gc-friendry/low-latency.</description>
