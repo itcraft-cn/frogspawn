@@ -63,7 +63,45 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 - 发布前应使用 JDK24+ 执行一次完整构建，并校验 jar 内存在
   `META-INF/versions/9`、`META-INF/versions/24` 目录与 `Multi-Release: true` 清单项。
 
+### MR-JAR 硬约束
+
+1. base 层不能用 `--release 8` 编译：`sun.misc.Unsafe` 不在 `ct.sym` 的 Java 8 签名里。
+   本项目保持 `source/target 8`，并用 JDK8 `javac` 编译 base。
+2. 版本化类只在**从 jar 加载**时生效；跑 `target/classes` 的单测永远测基础版。
+   必须对成品 jar 验证版本层选择（见 `MrJarLayoutTest`）。
+3. 版本化类与基础类必须同名同签名；版本化实现只依赖基础公共 API，不得引用旧 JDK 才有的类。
+4. 后端选择由 MR-JAR 版本目录决定（base / `versions/9` / `versions/24`），不额外引入系统属性开关；
+   如后续新增开关，启动日志必须打印实际后端。
+5. `src/main/java24` 使用 `MemorySegment`；如使用 restricted method，按实际 JDK 版本确认是否需要
+   `--enable-native-access`。当前 JDK25/27 已验证无需额外参数。
+6. 平台桥接保持叶子形态：`PlatformMemory` / `MemoryAccess` 是唯一后端入口；热路径使用
+   `static final` 常量，避免在业务代码中散落后端判断。
+
+验收清单：
+
+- JDK8 `clean test` 全绿；JDK24+ `clean package` 全绿。
+- 成品 jar 根目录含基础实现，`versions/9`、`versions/24` 含覆盖实现，manifest 含
+  `Multi-Release: true`。
+- 同一 jar 在 JDK8 / JDK21 / JDK25 上运行探针，各自报告预期后端。
+- `sources.jar` 可追溯到 `java8`、`java9`、`java24` 源码。
+
 ## 性能测试结果
+
+### JMH 吞吐对比（4 场景）
+
+环境：Intel Core Ultra 9 285H / 16 vCPU，4GB heap，4 threads，10×100ms warmup，
+5×20ms measurement，fork 3。
+
+| 场景 | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
+|------|--------------:|---------------:|-------------:|
+| Heap Pool | 666.94 | 698.53 | 1.047x |
+| OffHeap Pool | 619.21 | 678.98 | 1.097x |
+| FixedOffHeap Pool | 300.25 | 295.75 | 0.985x |
+| new | 363.17 | 359.22 | 0.989x |
+
+结论：小对象、无 GC 压力时 Heap 最快；OffHeap 在 JDK25 已接近 Heap；FixedOffHeap 的微基准
+吞吐较低，其价值在固定地址、零分配、大对象与 GC 敏感场景。详见
+[`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。
 
 ### 小对象 (~64 bytes) - GC 压力测试
 
@@ -87,6 +125,15 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 - **HeapPool**: 大对象 reset (数组清零) 开销 > JVM 新对象零值化
 - **new**: 中等性能，压力下可能触发 GC
 
+## 文档
+
+- 中文 README：`README.md`
+- 英文 README：`README_en.md`
+- 中文使用手册：`MANUAL.md`
+- 英文使用手册：`MANUAL_en.md`
+- 中文更新记录：`CHANGELOG.md`
+- 英文更新记录：`CHANGELOG_en.md`
+
 ## AI guide
 
 ### 角色定位
@@ -103,11 +150,29 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
     - 对 JVM 内存布局非常清楚
     - 开发上偏好面向对象编程（OOP）+接口
 
+### 工作准则
+
+1. 编码前先读取本文件与语言规范；信息不足时先检索代码库，不臆造接口、配置与依赖。
+2. 修改遵循最小范围，不顺手重构，不删除或绕过既有测试。
+3. 新增或修改逻辑必须有测试或可复现的验证步骤，并在交付说明中写明验证方式。
+4. 禁止用 stdout/stderr 输出调试信息，统一使用日志。
+5. 提交遵循约定式提交，仅使用当前 `user.name`，不推送远端。
+
 ### 环境信息
 
-通过 skill /java-env 获取
+通过 skill /java-env 获取 JDK、mvnd/mvn 的路径与版本。
+
+### 环境变量
+
+`${AI_SPEC_ROOT}` 定义在 bash/zsh 环境变量中，可被读取：`echo ${AI_SPEC_ROOT}`。
 
 ### 交互规则
+
+必须遵循 `interaction.rules.md` 中描述的规则。
+
+授权读取：${AI_SPEC_ROOT}/rules/interaction.rules.md
+
+项目补充：
 
 1. 所有交互均使用简体中文
 2. 处于 AI Coding Plan 包月模式下，不需要担心 Token，专注于高效而完整地工作
@@ -118,9 +183,8 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 
 ### 编码规范
 
-授权读取：/disk2/helly_data/code/markdown/self-ai-spec/lang-spec/spec.java.md
-
-Read /disk2/helly_data/code/markdown/self-ai-spec/lang-spec/spec.java.md
+授权读取：${AI_SPEC_ROOT}/lang-spec/spec.java.md
+授权读取：${AI_SPEC_ROOT}/lang-spec/review.java.md
 
 #### 项目特定规范
 
@@ -142,13 +206,14 @@ Read /disk2/helly_data/code/markdown/self-ai-spec/lang-spec/spec.java.md
    - 使用位运算替代算术运算
    - `Unsafe` 操作添加详细注释
 
-### 构建工具
+### 构建与验证
 
-授权读取：/disk2/helly_data/code/markdown/self-ai-spec/lang-spec/ci.java.md
+授权读取：${AI_SPEC_ROOT}/lang-spec/ci.java.md
 
-Read /disk2/helly_data/code/markdown/self-ai-spec/lang-spec/ci.java.md
+首选 mvnd，次选 mvn。
 
-首选 mvnd，次选 mvn
+本机 Java 工具链（SpotBugs、PMD、Arthas、async-profiler、jitwatch、堆转储解析等）的路径与用途见
+skill `/java-env`，模板不重复维护机器事实。
 
 ## Build/Lint/Test Commands
 

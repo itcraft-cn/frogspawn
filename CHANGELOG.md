@@ -1,4 +1,6 @@
-# 更新记录ChangeLog
+# 更新记录 CHANGELOG
+
+[English version](CHANGELOG_en.md)
 
 ## v0.7 (开发中)
 
@@ -44,8 +46,28 @@
 - `PrimitiveStructure` 新增默认 `getArrayElementSize`，数组按实际元素宽度分配
 - `OffHeapMemInfo` 保留手工填充字节数并累计到 `totalPadding`
 - `ClassChecker` 的 `Field.setAccessible` 移入 `AccessController.doPrivileged`
-- `sources.jar` 增加 `META-INF/versions/9` 源码映射
-- 新增 `FixedOffHeapPoolTest` 回归测试
+- `sources.jar` 增加 `META-INF/versions/9` 与 `META-INF/versions/24` 源码映射
+- 新增 `FixedOffHeapPoolTest`、`UnifiedPoolApiTest` 回归测试
+
+### 性能
+- 新增统一 JMH 基准 `AllPoolsBenchmark`，覆盖 4 个场景：
+  - Heap Pool / OffHeap Pool / FixedOffHeap Pool / `new`
+- JDK8 与 JDK25 对比（4 threads、10×100ms warmup、5×20ms measurement、fork 3）：
+
+| 场景 | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
+|------|--------------:|---------------:|-------------:|
+| Heap Pool | 666.94 | 698.53 | 1.047x |
+| OffHeap Pool | 619.21 | 678.98 | 1.097x |
+| FixedOffHeap Pool | 300.25 | 295.75 | 0.985x |
+| new | 363.17 | 359.22 | 0.989x |
+
+- JDK25 的 `versions/24` MemorySegment 实现无性能回退；OffHeap 已接近 Heap。
+- FixedOffHeap 的微基准吞吐较低，价值在固定地址、零分配、大对象与 GC 敏感场景。
+
+### 文档
+- README 拆分为中文 `README.md` / 英文 `README_en.md`
+- 更新记录拆分为中文 `CHANGELOG.md` / 英文 `CHANGELOG_en.md`
+- 新增中文 `MANUAL.md` / 英文 `MANUAL_en.md` 使用手册
 
 ## v0.6
 
@@ -62,7 +84,7 @@
 - 添加性能测试脚本 `run_bench.sh`，支持 JMH benchmark
 
 ### 文档
-- 添加英文版本文档 (README.md)
+- 添加英文版本文档 (`README_en.md`)
 - 添加 Java 代码走查报告 (`doc/review/java-review-20260326-001.md`)
 - 代码走查报告涵盖设计模式、线程安全、性能分析、代码规范等方面
 
