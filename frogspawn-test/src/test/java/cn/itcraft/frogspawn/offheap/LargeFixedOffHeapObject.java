@@ -1,0 +1,78 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package cn.itcraft.frogspawn.offheap;
+
+import cn.itcraft.frogspawn.platform.MemoryAccess;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
+
+/**
+ * 1MB 固定非堆对象（超大对象基准）
+ * 1MB fixed off-heap object for the large-object benchmark
+ *
+ * @author Helly Guo
+ */
+public class LargeFixedOffHeapObject implements FixedOffHeapObject {
+
+    public static final int OBJECT_SIZE = 1024 * 1024;
+
+    private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
+
+    private int index;
+    private long address;
+
+    @Override
+    public int index() {
+        return index;
+    }
+
+    @Override
+    public void index(int idx) {
+        this.index = idx;
+    }
+
+    @Override
+    public long address() {
+        return address;
+    }
+
+    @Override
+    public void address(long addr) {
+        this.address = addr;
+    }
+
+    @Override
+    public void reset() {
+        // 不清 index/address：由池管理 / do not clear index/address; managed by the pool
+    }
+
+    @Override
+    public int getMarkedId() {
+        return -1;
+    }
+
+    @Override
+    public void markId(int id) {
+    }
+
+    public void touch(long value) {
+        MEMORY.putLong(address, value);
+    }
+
+    public long read() {
+        return MEMORY.getLong(address);
+    }
+}

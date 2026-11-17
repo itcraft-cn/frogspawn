@@ -8,6 +8,8 @@ import java.util.Arrays;
  * Created on 2026-02-26 09:02
  */
 class SimplePrimitiveStructure implements PrimitiveStructure {
+    private static final Object STATIC_FIELD = new Object();
+
     private long address;
     private final long[] arrayAddresses = new long[0];
     private final int[] arrayLengths = new int[0];

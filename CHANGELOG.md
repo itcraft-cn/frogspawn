@@ -63,6 +63,9 @@
 
 - JDK25 的 `versions/24` MemorySegment 实现无性能回退；OffHeap 已接近 Heap。
 - FixedOffHeap 的微基准吞吐较低，价值在固定地址、零分配、大对象与 GC 敏感场景。
+- 新增 1MB 超大对象 JMH 基准：池化 fetch/release 比 `new` 快约 3 个数量级；
+  JDK25 OffHeap（MemorySegment）达到 673 ops/us。详见
+  `doc/review/jmh-20261117-002-large-objects.md`。
 
 ### 文档
 - README 拆分为中文 `README.md` / 英文 `README_en.md`

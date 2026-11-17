@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
@@ -32,6 +33,9 @@ final class ClassChecker {
         }
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
+            if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+                continue;
+            }
             if (THIS_VAR.matcher(field.getName()).matches()) {
                 continue;
             }

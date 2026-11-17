@@ -105,6 +105,9 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 使 p95/p99.9 更稳定。具体生产数据因环境、负载与 GC 配置而异，需结合 on/off 对比与
 GC 日志归因。
 详见 [`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。
+超大对象（1MB）结果见
+[`doc/review/jmh-20261117-002-large-objects.md`](doc/review/jmh-20261117-002-large-objects.md)：
+池化 fetch/release 比 `new` 快约 3 个数量级，JDK25 OffHeap（MemorySegment）达到 673 ops/us。
 
 ### 小对象 (~64 bytes) - GC 压力测试
 

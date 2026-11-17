@@ -181,6 +181,7 @@ mvn -f frogspawn/pom.xml clean package
 - 小对象、无 GC 压力时 **Heap 最快**；JDK25 下 OffHeap 已接近 Heap（约 97%）。
 - FixedOffHeap 在微基准中吞吐较低，其价值在固定地址、预创建零分配、大对象与 GC 敏感场景。
 - OffHeap/FixedOffHeap 的主场是 GC 压力与堆外内存，而不是 8 字节对象的纯 fetch/release 吞吐。
+- 超大对象（1MB）结果见 [JMH 大对象报告](doc/review/jmh-20261117-002-large-objects.md)。
 
 ### GC 压力测试（历史数据）
 

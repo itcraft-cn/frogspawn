@@ -191,6 +191,7 @@ Takeaways:
   pre-created zero-allocation objects, large objects and GC-sensitive workloads.
 - The real home of OffHeap/FixedOffHeap is GC pressure and off-heap memory, not pure
   `fetch`/`release` throughput for 8-byte objects.
+- See the [large-object (1MB) JMH report](doc/review/jmh-20261117-002-large-objects.md).
 
 ### GC Pressure Test (historical)
 

@@ -21,6 +21,12 @@ public class ClassCheckerTest {
             };
 
     @Test
+    public void shouldIgnoreStaticFields() {
+        Assertions.assertDoesNotThrow(
+                () -> ClassChecker.checkClassValid(SimplePrimitiveStructure.class, PrimitiveStructure.class));
+    }
+
+    @Test
     public void testCheck() {
         for (TestTarget target : TARGETS) {
             Executable executable = () -> test(target.getTarget());

@@ -72,6 +72,9 @@
   to Heap.
 - FixedOffHeap has lower throughput in this microbenchmark; its value is fixed addresses,
   zero allocation, large objects and GC-sensitive workloads.
+- Added a 1MB large-object JMH benchmark: pooled fetch/release is about three orders of
+  magnitude faster than `new`; JDK25 OffHeap (MemorySegment) reaches 673 ops/us. See
+  `doc/review/jmh-20261117-002-large-objects.md`.
 
 ### Documentation
 - Split README into Chinese `README.md` and English `README_en.md`
