@@ -16,6 +16,8 @@
  */
 package cn.itcraft.frogspawn.platform;
 
+import java.nio.ByteBuffer;
+
 /**
  * JDK8-23 原生内存访问基类
  * JDK8-23 raw memory access base class
@@ -117,5 +119,11 @@ abstract class AbstractRawMemoryAccess implements MemoryAccess {
     @Override
     public void copyMemory(long srcAddress, long dstAddress, long bytes) {
         RawMemoryUtil.copyMemory(srcAddress, dstAddress, bytes);
+    }
+
+    @Override
+    public ByteBuffer asByteBuffer(long address, long size) {
+        throw new UnsupportedOperationException(
+                "byte buffer view requires JDK24+ or a direct ByteBuffer-backed object");
     }
 }

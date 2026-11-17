@@ -16,6 +16,8 @@
  */
 package cn.itcraft.frogspawn.platform;
 
+import java.nio.ByteBuffer;
+
 /**
  * 平台内存访问入口
  * Platform memory access entry point
@@ -41,6 +43,19 @@ public final class PlatformMemory {
     private static final String IMPL_CLASS = "cn.itcraft.frogspawn.platform.MemoryAccessImpl";
 
     private PlatformMemory() {
+    }
+
+    /**
+     * 将原生内存包装为直接 ByteBuffer 视图
+     * Wrap native memory as a direct ByteBuffer view
+     *
+     * @param address 起始地址 / start address
+     * @param size    字节数 / byte count
+     * @return 直接 ByteBuffer 视图 / direct ByteBuffer view
+     * @throws UnsupportedOperationException 当前平台不支持 / unsupported on this platform
+     */
+    public static ByteBuffer asByteBuffer(long address, long size) {
+        return ACCESS.asByteBuffer(address, size);
     }
 
     private static MemoryAccess load() {

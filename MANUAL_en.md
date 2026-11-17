@@ -199,6 +199,31 @@ try {
 
 After `close()`, `fetch/release` throws `IllegalStateException`.
 
+#### Zero-Copy ByteBuffer View
+
+`FixedOffHeapObject.buffer()` throws `UnsupportedOperationException` by default; implementations
+may override it:
+
+- **JDK24+**: use `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`, backed by
+  `MemorySegment.asByteBuffer()`. It can be passed directly to `FileChannel` / `SocketChannel`:
+
+  ```java
+  @Override
+  public ByteBuffer buffer() {
+      return PlatformMemory.asByteBuffer(address(), OBJECT_SIZE);
+  }
+  ```
+
+- **JDK8-23**: there is no public API to wrap an arbitrary address as a `ByteBuffer`; the
+  implementation should hold a `ByteBuffer.allocateDirect(OBJECT_SIZE)` and return it from
+  `buffer()`, associating `address()` with that buffer.
+
+Notes:
+
+- Each fetched object/ByteBuffer must be used exclusively; do not share it across threads.
+- `position/limit` are ByteBuffer state; call `clear()` / `flip()` as needed before IO.
+- Do not use a buffer view after `FixedOffHeapPool.close()`.
+
 ## 7. Pool strategies
 
 `FetchStrategy`:

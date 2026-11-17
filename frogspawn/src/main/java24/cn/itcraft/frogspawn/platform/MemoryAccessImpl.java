@@ -21,6 +21,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -180,6 +181,11 @@ public final class MemoryAccessImpl implements MemoryAccess {
         MemorySegment source = segment(srcAddress, bytes);
         MemorySegment target = segment(dstAddress, bytes);
         target.copyFrom(source);
+    }
+
+    @Override
+    public ByteBuffer asByteBuffer(long address, long size) {
+        return segment(address, size).asByteBuffer();
     }
 
     private static MemorySegment segment(long address, long bytes) {

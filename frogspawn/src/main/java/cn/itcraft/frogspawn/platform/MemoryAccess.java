@@ -16,6 +16,8 @@
  */
 package cn.itcraft.frogspawn.platform;
 
+import java.nio.ByteBuffer;
+
 /**
  * 平台内存访问 SPI
  * Platform memory access SPI
@@ -127,4 +129,18 @@ public interface MemoryAccess {
      * @param bytes      字节数 / byte count
      */
     void copyMemory(long srcAddress, long dstAddress, long bytes);
+
+    /**
+     * 将原生内存包装为直接 ByteBuffer 视图
+     * Wrap native memory as a direct ByteBuffer view
+     *
+     * JDK24+ 使用 {@code MemorySegment.asByteBuffer()}；JDK8-23 默认不支持。
+     * JDK24+ uses {@code MemorySegment.asByteBuffer()}; unsupported on JDK8-23 by default.
+     *
+     * @param address 起始地址 / start address
+     * @param size    字节数 / byte count
+     * @return 直接 ByteBuffer 视图 / direct ByteBuffer view
+     * @throws UnsupportedOperationException 当前平台不支持 / unsupported on this platform
+     */
+    ByteBuffer asByteBuffer(long address, long size);
 }

@@ -31,6 +31,9 @@
     分配/释放内存、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`
   - `ArrayUtil`、`FixedOffHeapPool`、`OffHeapObjectsMemoryPoolImpl` 不再直接依赖 `Unsafe`
 - MR-JAR 新增 `META-INF/versions/24` 覆盖层
+- `FixedOffHeapObject` 新增 `buffer()` 默认方法（默认抛 `UnsupportedOperationException`）；
+  `PlatformMemory.asByteBuffer(address, size)` 在 JDK24+ 基于
+  `MemorySegment.asByteBuffer()` 提供零拷贝 `ByteBuffer` 视图
 
 ### API
 - 新增统一池创建入口：

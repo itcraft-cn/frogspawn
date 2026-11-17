@@ -143,6 +143,8 @@ Platform access goes through `cn.itcraft.frogspawn.platform.MemoryAccess`:
 - JDK9-23 uses `VarHandle` for array access and `RawMemoryUtil` for raw memory.
 - JDK24+ uses `MemorySegment` for allocation/free, primitive access and `copyFrom`, with
   `VarHandle` for array access. No `sun.misc.Unsafe` is loaded by the JDK24+ implementation.
+- `FixedOffHeapObject.buffer()` offers an optional zero-copy `ByteBuffer` view: JDK24+ creates
+  it via `MemorySegment.asByteBuffer()`; JDK8-23 implementations can hold a direct `ByteBuffer`.
 
 Build a full MR-JAR with both JDK8 and JDK24+:
 

@@ -34,6 +34,9 @@
   - `ArrayUtil`, `FixedOffHeapPool` and `OffHeapObjectsMemoryPoolImpl` no longer depend on
     `Unsafe` directly
 - Added the `META-INF/versions/24` overlay
+- Added `FixedOffHeapObject.buffer()` (unsupported by default) and
+  `PlatformMemory.asByteBuffer(address, size)`; on JDK24+ it creates a zero-copy
+  `ByteBuffer` view via `MemorySegment.asByteBuffer()`
 - `FixedOffHeapPool` fixes:
   - exhaustion/retry no longer returns an unmanaged object; it throws `IllegalStateException`
   - ownership validation and `IN_USE/AVAILABLE` state CAS reject duplicate/foreign releases

@@ -143,6 +143,8 @@ PoolConfig.fixedOffHeap(10000, 64);
 - JDK9-23 使用 `VarHandle` 访问数组，原生内存使用 `RawMemoryUtil`。
 - JDK24+ 使用 `MemorySegment` 完成分配/释放、基本类型访问与 `copyFrom`，数组访问使用
   `VarHandle`，JDK24+ 实现不再加载 `sun.misc.Unsafe`。
+- `FixedOffHeapObject.buffer()` 提供可选的零拷贝 `ByteBuffer` 视图：JDK24+ 通过
+  `MemorySegment.asByteBuffer()` 创建，JDK8-23 可由实现持有 direct `ByteBuffer`。
 
 同时使用 JDK8 与 JDK24+ 构建完整 MR-JAR：
 

@@ -195,6 +195,30 @@ try {
 
 `close()` 后再 `fetch/release` 会抛出 `IllegalStateException`。
 
+#### 零拷贝 ByteBuffer 视图
+
+`FixedOffHeapObject.buffer()` 默认抛 `UnsupportedOperationException`，实现类可按需覆盖：
+
+- **JDK24+**：使用 `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`，底层是
+  `MemorySegment.asByteBuffer()`，可直接用于 `FileChannel` / `SocketChannel`：
+
+  ```java
+  @Override
+  public ByteBuffer buffer() {
+      return PlatformMemory.asByteBuffer(address(), OBJECT_SIZE);
+  }
+  ```
+
+- **JDK8-23**：没有公开 API 将任意地址包装为 `ByteBuffer`；建议实现类持有
+  `ByteBuffer.allocateDirect(OBJECT_SIZE)`，`buffer()` 直接返回，并把 `address()`
+  与该 buffer 关联。
+
+注意：
+
+- 每个 fetch 到的对象/ByteBuffer 必须独占使用，不要跨线程共享；
+- `position/limit` 是 ByteBuffer 自身状态，每次 IO 前按需 `clear()` / `flip()`；
+- `FixedOffHeapPool.close()` 后不要再使用任何 buffer 视图。
+
 ## 7. 池策略
 
 `FetchStrategy`：
