@@ -60,6 +60,28 @@ try{
 }
 ```
 
+## 统一池创建 API
+
+`fetch` / `release` 对所有池类型已经一致。统一创建入口：
+
+```java
+ObjectsMemoryPool<DemoPojo> pool = ObjectsMemoryPoolFactory.newPool(
+        new DemoPojoCreator(), PoolConfig.offHeap(1024));
+```
+
+只改配置即可切换实现：
+
+```java
+PoolConfig.heap(3000);
+PoolConfig.offHeap(1024);
+PoolConfig.fixedOffHeap(10000, 64);
+```
+
+`OFF_HEAP` 要求对象实现 `PrimitiveStructure`；`FIXED_OFF_HEAP` 要求实现
+`FixedOffHeapObject`。工厂会校验 creator 的返回类型，不匹配时抛出
+`IllegalArgumentException`。原有 `newPool` / `newOffHeapPool` / `newFixedOffHeapPool`
+方法继续保留，兼容旧代码。
+
 ## 三种可选模式
 
 目前支持三种不同模式：

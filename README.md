@@ -60,6 +60,28 @@ try{
 }
 ```
 
+## Unified Pool Creation API
+
+`fetch` / `release` are already identical for all pool types. The unified creation entry is:
+
+```java
+ObjectsMemoryPool<DemoPojo> pool = ObjectsMemoryPoolFactory.newPool(
+        new DemoPojoCreator(), PoolConfig.offHeap(1024));
+```
+
+Switch implementations by changing only the config:
+
+```java
+PoolConfig.heap(3000);
+PoolConfig.offHeap(1024);
+PoolConfig.fixedOffHeap(10000, 64);
+```
+
+`OFF_HEAP` requires the object to implement `PrimitiveStructure`;
+`FIXED_OFF_HEAP` requires `FixedOffHeapObject`. The factory validates the creator return type
+and throws `IllegalArgumentException` on mismatch. Existing `newPool` / `newOffHeapPool` /
+`newFixedOffHeapPool` methods remain available for backward compatibility.
+
 ## Three Available Modes
 
 Currently supports three different modes:

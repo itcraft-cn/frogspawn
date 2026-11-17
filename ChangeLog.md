@@ -29,6 +29,14 @@
     分配/释放内存、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`
   - `ArrayUtil`、`FixedOffHeapPool`、`OffHeapObjectsMemoryPoolImpl` 不再直接依赖 `Unsafe`
 - MR-JAR 新增 `META-INF/versions/24` 覆盖层
+
+### API
+- 新增统一池创建入口：
+  - `PoolType`：`HEAP` / `OFF_HEAP` / `FIXED_OFF_HEAP`
+  - `PoolConfig`：`heap(...)` / `offHeap(...)` / `fixedOffHeap(...)`
+  - `ObjectsMemoryPoolFactory.newPool(creator, PoolConfig)`
+- 原有工厂方法保留，内部委托到统一入口
+- `fetch` / `release` 使用 API 保持统一；非堆类型在创建时校验对象接口
 - `FixedOffHeapPool` 修复池耗尽/重试失败返回未托管对象、释放兜底覆盖索引的问题：
   - 耗尽抛 `IllegalStateException`
   - 增加归属校验与 `IN_USE/AVAILABLE` 状态 CAS
