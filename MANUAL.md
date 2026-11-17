@@ -262,6 +262,19 @@ JMH（4 threads、10×100ms warmup、5×20ms measurement、fork 3）：
 - FixedOffHeap 的微基准吞吐低于 Heap/OffHeap，这是固定地址与正确性校验的成本；
   它的价值在 GC 压力、固定地址与零分配场景。
 
+### Heap 模式的最大优势：平滑 GC 抖动
+
+Heap 模式最大的优势不是纯 `fetch/release` 吞吐，而是**平滑 GC 带来的延迟抖动**：
+
+- 预分配 + 复用降低分配速率；
+- 线程本地缓存降低共享池竞争；
+- 减少 GC 次数与 pause，使 p95 / p99.9 更稳定。
+
+在固定线程池、固定处理链路的低延迟系统中，这种“方差优化”通常比“均值优化”更有价值。
+
+具体生产数据因环境、负载与 GC 配置而异；frogspawn 的贡献应通过 GC 次数/停顿、
+分配速率、以及 p99.9 与 GC pause 的相关性来验证。
+
 更多数据见 [JMH 报告](doc/review/jmh-20261117-001-heap-offheap.md)。
 
 ## 11. 常见问题

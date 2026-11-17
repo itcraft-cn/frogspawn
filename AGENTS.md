@@ -100,8 +100,11 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 | new | 363.17 | 359.22 | 0.989x |
 
 结论：小对象、无 GC 压力时 Heap 最快；OffHeap 在 JDK25 已接近 Heap；FixedOffHeap 的微基准
-吞吐较低，其价值在固定地址、零分配、大对象与 GC 敏感场景。详见
-[`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。
+吞吐较低，其价值在固定地址、零分配、大对象与 GC 敏感场景。**Heap 模式最大的优势是平滑 GC
+带来的延迟抖动**：预分配/复用降低分配速率，线程本地缓存降低竞争，减少 GC 次数与 pause，
+使 p95/p99.9 更稳定。具体生产数据因环境、负载与 GC 配置而异，需结合 on/off 对比与
+GC 日志归因。
+详见 [`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。
 
 ### 小对象 (~64 bytes) - GC 压力测试
 

@@ -268,6 +268,22 @@ Selection guidance:
   fixed addresses and correctness validation. Its value is GC pressure, fixed addresses and
   zero allocation.
 
+### Heap Mode's Biggest Advantage: Smoothing GC-Induced Latency Jitter
+
+The biggest advantage of Heap mode is not raw `fetch/release` throughput, but **smoothing
+GC-induced latency jitter**:
+
+- pre-allocation + reuse reduce the allocation rate;
+- thread-local caches reduce shared-pool contention;
+- fewer GC cycles and shorter pauses make p95 / p99.9 more stable.
+
+In a low-latency system with a fixed thread pool and a fixed processing pipeline, this
+"variance optimization" is often more valuable than "mean optimization".
+
+Production figures vary with environment, workload and GC configuration; attribute
+frogspawn's contribution via GC count/pause, allocation rate, and the correlation between
+p99.9 and GC pauses.
+
 See the [JMH report](doc/review/jmh-20261117-001-heap-offheap.md) for details.
 
 ## 11. Troubleshooting

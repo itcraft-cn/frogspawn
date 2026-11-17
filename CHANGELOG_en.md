@@ -77,6 +77,8 @@
 - Split README into Chinese `README.md` and English `README_en.md`
 - Split changelog into Chinese `CHANGELOG.md` and English `CHANGELOG_en.md`
 - Added Chinese `MANUAL.md` and English `MANUAL_en.md`
+- Documented that Heap mode's biggest advantage is smoothing GC-induced latency jitter;
+  production figures are environment/workload dependent and intentionally not published
 
 ## v0.6
 

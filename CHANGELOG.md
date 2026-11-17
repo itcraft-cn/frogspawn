@@ -68,6 +68,8 @@
 - README 拆分为中文 `README.md` / 英文 `README_en.md`
 - 更新记录拆分为中文 `CHANGELOG.md` / 英文 `CHANGELOG_en.md`
 - 新增中文 `MANUAL.md` / 英文 `MANUAL_en.md` 使用手册
+- 明确 Heap 模式最大优势是平滑 GC 带来的延迟抖动；具体生产数据因环境、负载与 GC 配置而异，
+  公开文档不记录具体数字
 
 ## v0.6
 
