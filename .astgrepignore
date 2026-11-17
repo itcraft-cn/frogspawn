@@ -8,12 +8,12 @@
 - rule: infinite-loop-while-true
   paths:
     - "frogspawn/src/main/java/cn/itcraft/frogspawn/local/FetchHelper.java"
-    - "frogspawn/src/main/java8/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
+    - "frogspawn/src/main/java/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
     - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/misc/MainHelper.java"
 - rule: long-loop-without-try-catch
   paths:
     - "frogspawn/src/main/java/cn/itcraft/frogspawn/local/FetchHelper.java"
-    - "frogspawn/src/main/java8/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
+    - "frogspawn/src/main/java/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
 
 # 测试 / 基准代码：输出、交互式等待与测试辅助属于预期行为
 - rule: system-out-print
@@ -32,3 +32,5 @@
 - rule: unnamed-thread
   paths:
     - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/DemoThreadFactory.java"
+
+

@@ -11,13 +11,14 @@ frogspawn/                   # 主库模块
 ├── src/main/java/cn/itcraft/frogspawn/
 │   ├── offheap/             # 非堆内存池接口与平台无关逻辑
 │   ├── local/               # 堆内存池实现
+│   ├── platform/            # 平台 SPI（MemoryAccess / PlatformMemory）
 │   ├── strategy/            # 池策略
 │   ├── misc/                # 平台无关工具类
 │   ├── util/                # 平台无关工具类
 │   ├── constants/           # 常量定义
 │   └── data/                # 数据封装类
-├── src/main/java8/          # JDK8 专有实现（sun.misc.Unsafe / sun.misc.Contended）
-├── src/main/java9/          # JDK9+ 覆盖实现（META-INF/versions/9）
+├── src/main/java8/          # JDK8 专有实现（Unsafe / Contended / RawMemoryUtil）
+├── src/main/java9/          # JDK9+ 覆盖实现（VarHandle / jdk.internal Contended）
 frogspawn-test/              # 测试模块
 ├── src/test/java/           # 单元测试和基准测试
 ```
@@ -38,6 +39,8 @@ frogspawn-test/              # 测试模块
 2. 任何 `sun.misc.*`、`sun.misc.Unsafe` 相关实现必须放 `src/main/java8`。
 3. 需要按 JDK 版本覆盖的类放 `src/main/java9`，包名与类名必须和 base 完全一致。
 4. 新增 JDK 专有实现时，优先抽取平台无关接口，避免复制整段业务逻辑。
+5. 平台相关访问统一通过 `cn.itcraft.frogspawn.platform.MemoryAccess` SPI；
+   `src/main/java9` 不得直接 `import sun.misc.*`，原生内存分配复用 `RawMemoryUtil`。
 
 ## MR-JAR 构建
 

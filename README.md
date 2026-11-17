@@ -109,8 +109,14 @@ The last option is the default.
 | JDK9+ overlay | `src/main/java9` | 53 (Java 9) | JDK9+ |
 
 - `src/main/java`: only JDK-independent code.
-- `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe` and `sun.misc.Contended`.
-- `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended`.
+- `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe`, `sun.misc.Contended`
+  and `RawMemoryUtil`.
+- `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended` and a
+  `VarHandle`-based `MemoryAccessImpl`.
+
+Platform access goes through `cn.itcraft.frogspawn.platform.MemoryAccess`. Raw allocation still
+reuses the JDK8 `RawMemoryUtil` because JDK9-21 has no public raw-address allocation API; a future
+`java22` overlay can switch to `java.lang.foreign`.
 
 Build a full MR-JAR with both JDK8 and JDK9+:
 

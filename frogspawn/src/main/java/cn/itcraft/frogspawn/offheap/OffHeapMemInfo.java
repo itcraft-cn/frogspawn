@@ -22,6 +22,9 @@ public class OffHeapMemInfo {
     private final List<Integer> arrayLengths = new ArrayList<>();
     private int currentOffset = 0;
     private int totalSize = 0;
+    // 累计填充字节数，用于手工伪共享/对齐诊断
+    // Accumulated padding bytes for manual false-sharing/alignment diagnostics
+    private int totalPadding = 0;
     
     /**
      * 添加字段到内存布局
@@ -38,9 +41,14 @@ public class OffHeapMemInfo {
      * @param size 字段大小（字节）
      * @param arrayLength 数组长度（仅数组字段有效）
      */
+    @SuppressWarnings("PMD.UnusedLocalVariable")
     public void appendField(FieldType fieldType, int size, int arrayLength) {
         // 计算对齐后的偏移量
         int alignedOffset = alignUp(currentOffset, ALIGNMENT);
+        // 手工保留填充字节数，用于伪共享/对齐干预与诊断，禁止删除
+        // Keep the padding byte count for manual false-sharing/alignment tuning; do not remove
+        int padding = alignedOffset - currentOffset;
+        totalPadding += padding;
 
         fieldTypes.add(fieldType);
         fieldSizes.add(size);
@@ -90,6 +98,16 @@ public class OffHeapMemInfo {
         return arrayLengths.get(index);
     }
     
+    /**
+     * 获取累计填充字节数
+     * Get total padding bytes
+     *
+     * @return 累计填充字节数 / total padding bytes
+     */
+    public int getTotalPadding() {
+        return totalPadding;
+    }
+
     /**
      * 获取对象内存总大小（字节，已对齐）
      */

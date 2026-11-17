@@ -72,7 +72,9 @@ public class HugeFixedOffHeapObject implements FixedOffHeapObject {
     }
 
     public void setData(long l1, long l2, int i1, int i2, double d1) {
-        if (address == 0) return;
+        if (address == 0) {
+            return;
+        }
         
         UNSAFE.putLong(address, l1);
         UNSAFE.putLong(address + 8, l2);

@@ -51,6 +51,20 @@ public interface PrimitiveStructure extends Resettable {
      * @param index 数组字段索引（0-based）
      */
     int getArrayLength(int index);
+
+    /**
+     * 获取指定数组字段的元素大小（字节）
+     * Get the element size in bytes of the specified array field
+     *
+     * 默认按 8 字节（long/double）处理，保持与旧实现兼容。
+     * Defaults to 8 bytes (long/double) for backward compatibility.
+     *
+     * @param index 数组字段索引（0-based）/ array field index (0-based)
+     * @return 元素大小（1/2/4/8）/ element size in bytes
+     */
+    default int getArrayElementSize(int index) {
+        return Long.BYTES;
+    }
     
     /**
      * 将对象数据写入非堆内存

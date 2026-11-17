@@ -2,7 +2,8 @@ package cn.itcraft.frogspawn.offheap;
 
 import cn.itcraft.frogspawn.ObjectCreator;
 import cn.itcraft.frogspawn.ObjectsMemoryPool;
-import sun.misc.Unsafe;
+import cn.itcraft.frogspawn.platform.MemoryAccess;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implements ObjectsMemoryPool<T> {
 
-    private static final Unsafe UNSAFE = UnsafeUtil.getTheUnsafe();
+    private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
     private static final int DEFAULT_MAX_POOL_SIZE = 1024;
 
     private final AtomicLong totalAllocatedMemory = new AtomicLong(0);
@@ -58,7 +59,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         ClassChecker.checkClassValid(sample.getClass(), PrimitiveStructure.class);
         sample.setAddress(0);
 
-        this.memoryPoolAddress = UNSAFE.allocateMemory(MEMORY_POOL_SIZE);
+        this.memoryPoolAddress = MEMORY.allocateMemory(MEMORY_POOL_SIZE);
         this.freeSlots = new long[SLOT_COUNT];
         for (int i = 0; i < SLOT_COUNT; i++) {
             freeSlots[i] = memoryPoolAddress + (long) i * SLOT_SIZE;
@@ -198,7 +199,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         for (int i = 0; i < arrayFieldCount; i++) {
             int arrayLength = obj.getArrayLength(i);
             if (arrayLength > 0) {
-                long arraySize = (long) arrayLength << 3;
+                long arraySize = (long) arrayLength * obj.getArrayElementSize(i);
                 long arrayAddress = allocateMemory(arraySize, COMBINED_CACHE.get());
                 obj.setArrayAddress(i, arrayAddress);
             }
@@ -219,7 +220,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         }
 
         if (size > SLOT_SIZE) {
-            long address = UNSAFE.allocateMemory(size);
+            long address = MEMORY.allocateMemory(size);
             totalAllocatedMemory.addAndGet(size);
             return address;
         }
@@ -234,7 +235,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         while (true) {
             int count = freeSlotCount.get();
             if (count <= 0) {
-                long directAddress = UNSAFE.allocateMemory(size);
+                long directAddress = MEMORY.allocateMemory(size);
                 totalAllocatedMemory.addAndGet(size);
                 return directAddress;
             }
@@ -251,7 +252,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         if (address >= memoryPoolAddress && address < memoryPoolAddress + MEMORY_POOL_SIZE) {
             COMBINED_CACHE.get().pushAddress(address);
         } else {
-            UNSAFE.freeMemory(address);
+            MEMORY.freeMemory(address);
         }
     }
 

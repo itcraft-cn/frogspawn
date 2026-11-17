@@ -109,8 +109,13 @@ try{
 | JDK9+ 覆盖层 | `src/main/java9` | 53 (Java 9) | JDK9+ |
 
 - `src/main/java`：只放与 JDK 版本无关的代码。
-- `src/main/java8`：JDK8 专有实现，包括 `sun.misc.Unsafe`、`sun.misc.Contended`。
-- `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended`。
+- `src/main/java8`：JDK8 专有实现，包括 `sun.misc.Unsafe`、`sun.misc.Contended`、`RawMemoryUtil`。
+- `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended` 以及基于
+  `VarHandle` 的 `MemoryAccessImpl`。
+
+平台相关访问统一走 `cn.itcraft.frogspawn.platform.MemoryAccess`。JDK9-21 没有公开的原始地址
+分配 API，原生内存分配仍复用 JDK8 的 `RawMemoryUtil`；后续可增加 `java22` overlay 切换到
+`java.lang.foreign`。
 
 同时使用 JDK8 与 JDK9+ 构建完整 MR-JAR：
 

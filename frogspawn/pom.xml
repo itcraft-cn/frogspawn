@@ -137,6 +137,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- 将 java9 源码映射到 sources jar 的 META-INF/versions/9 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>add-java9-sources</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/mr-sources/META-INF/versions/9"/>
+                                <copy todir="${project.build.directory}/mr-sources/META-INF/versions/9">
+                                    <fileset dir="${project.basedir}/src/main/java9"/>
+                                </copy>
+                                <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar"
+                                     update="true">
+                                    <fileset dir="${project.build.directory}/mr-sources"/>
+                                </jar>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

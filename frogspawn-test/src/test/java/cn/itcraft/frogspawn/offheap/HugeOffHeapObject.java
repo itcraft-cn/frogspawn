@@ -20,6 +20,7 @@ public class HugeOffHeapObject implements PrimitiveStructure {
     private long address;
     private final long[] arrayAddresses = new long[3];
     private final int[] arrayLengths = {LONG_ARRAY_SIZE, INT_ARRAY_SIZE, BYTE_ARRAY_SIZE};
+    private final int[] arrayElementSizes = {Long.BYTES, Integer.BYTES, Byte.BYTES};
     
     private long field1;
     private long field2;
@@ -98,8 +99,15 @@ public class HugeOffHeapObject implements PrimitiveStructure {
     }
 
     @Override
+    public final int getArrayElementSize(int index) {
+        return arrayElementSizes[index];
+    }
+
+    @Override
     public void writeToMemory() {
-        if (address == 0) return;
+        if (address == 0) {
+            return;
+        }
         
         UNSAFE.putLong(address, field1);
         UNSAFE.putLong(address + 8, field2);
@@ -132,7 +140,9 @@ public class HugeOffHeapObject implements PrimitiveStructure {
 
     @Override
     public void readFromMemory() {
-        if (address == 0) return;
+        if (address == 0) {
+            return;
+        }
         
         field1 = UNSAFE.getLong(address);
         field2 = UNSAFE.getLong(address + 8);

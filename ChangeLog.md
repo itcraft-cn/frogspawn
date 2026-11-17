@@ -21,6 +21,21 @@
 - 新增 `.astgrepignore` 登记有意 CAS/阻塞循环及测试输出的误报
 - 新增 `LocalObjectsMemoryPoolResetTest` 回归测试
 
+### 非堆内存与平台 SPI
+- 新增 `cn.itcraft.frogspawn.platform.MemoryAccess` 平台 SPI：
+  - `java8` 实现使用 `sun.misc.Unsafe`
+  - `java9` 实现使用 `VarHandle` 访问数组，原生内存复用 `RawMemoryUtil`
+  - `ArrayUtil`、`FixedOffHeapPool`、`OffHeapObjectsMemoryPoolImpl` 不再直接依赖 `Unsafe`
+- `FixedOffHeapPool` 修复池耗尽/重试失败返回未托管对象、释放兜底覆盖索引的问题：
+  - 耗尽抛 `IllegalStateException`
+  - 增加归属校验与 `IN_USE/AVAILABLE` 状态 CAS
+  - 共享栈改为锁保护，消除并发拷贝竞态
+- `PrimitiveStructure` 新增默认 `getArrayElementSize`，数组按实际元素宽度分配
+- `OffHeapMemInfo` 保留手工填充字节数并累计到 `totalPadding`
+- `ClassChecker` 的 `Field.setAccessible` 移入 `AccessController.doPrivileged`
+- `sources.jar` 增加 `META-INF/versions/9` 源码映射
+- 新增 `FixedOffHeapPoolTest` 回归测试
+
 ## v0.6
 
 ### 性能优化
