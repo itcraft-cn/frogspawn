@@ -239,4 +239,20 @@ In a low-latency system with a fixed thread pool and a fixed processing pipeline
 Production figures vary with environment, workload and GC configuration; attribute
 frogspawn's contribution via GC count/pause, allocation rate, and the correlation between
 p99.9 and GC pauses.
+
+## Selection Notes
+
+- **Heap is the default**: use it for small objects to smooth GC jitter; large objects can also
+  benefit from reuse and reduced allocation/zeroing cost.
+- **Small objects**: pooling mainly reduces allocation rate, GC frequency and tail latency, not
+  average throughput; in microbenchmarks `new` is often faster.
+- **Large objects**: heap pooling is not unconditionally better. Retaining large objects on the
+  heap increases the live set/old-gen pressure; if `reset()` must clear a large block, the gain
+  shrinks. For GC-sensitive large objects, prefer OffHeap / FixedOffHeap.
+- **Baseline**: compare against `new` and GC metrics (count/pause/p99.9) first, then against
+  generic pools such as Commons Pool 2.x.
+- **OffHeap / FixedOffHeap are specialized**:
+  - Dynamic OffHeap: variable-size/large data, GC offload, native interop;
+  - FixedOffHeap: fixed-size records, stable addresses, zero allocation, zero-copy disk/network IO.
+  - Narrow applicability, but the highest value in matching workloads.
 ```
