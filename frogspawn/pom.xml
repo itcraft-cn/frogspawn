@@ -46,15 +46,88 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!--
+            JDK8 用于编译 base 层（src/main/java + src/main/java8）。
+            优先使用环境变量 JAVA_HOME8，也可以通过 -Dmr.base.jdk.home=... 覆盖。
+            JDK8 is used to compile the base layer (src/main/java + src/main/java8).
+            Defaults to the JAVA_HOME8 environment variable and can be overridden
+            with -Dmr.base.jdk.home=...
+        -->
+        <mr.base.jdk.home>${env.JAVA_HOME8}</mr.base.jdk.home>
+        <!-- JDK9+ 覆盖层输出目录 / JDK9+ overlay output directory -->
+        <mr.java9.output>${project.build.outputDirectory}/META-INF/versions/9</mr.java9.output>
     </properties>
 
     <build>
         <plugins>
+            <!-- compiler: base layer (JDK8) + versioned overlay (JDK9+) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <!-- 公共代码 + JDK8 专有实现 / common code + JDK8-specific implementation -->
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
+                                <compileSourceRoot>${project.basedir}/src/main/java8</compileSourceRoot>
+                            </compileSourceRoots>
+                            <source>8</source>
+                            <target>8</target>
+                            <fork>true</fork>
+                            <executable>${mr.base.jdk.home}/bin/javac</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- jar: multi-release packaging -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <excludes>
+                        <exclude>META-INF/jpms.args</exclude>
+                        <exclude>META-INF/versions/9/META-INF/jpms.args</exclude>
+                    </excludes>
+                    <archive>
+                        <manifestEntries>
+                            <Multi-Release>true</Multi-Release>
+                            <Automatic-Module-Name>cn.itcraft.frogspawn</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- 将 src/main/java8 注册为源码根，sources jar 才能收录 JDK8 实现 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <id>add-java8-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/main/java8</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- source -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -68,7 +141,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.11.2</version>
+                <configuration>
+                    <source>8</source>
+                    <sourcepath>${project.build.sourceDirectory}${path.separator}${project.basedir}/src/main/java8</sourcepath>
+                    <javadocExecutable>${mr.base.jdk.home}/bin/javadoc</javadocExecutable>
+                    <doclint>none</doclint>
+                    <quiet>true</quiet>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -105,5 +185,68 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            未设置 JAVA_HOME8 时回退到当前 Maven 使用的 JDK。
+            仅当 Maven 本身运行在 JDK8 上时该回退才能编译 base 层。
+            Fall back to the JDK running Maven when JAVA_HOME8 is not set.
+            The base layer can only be compiled this way on JDK8 itself.
+        -->
+        <profile>
+            <id>base-jdk-fallback</id>
+            <activation>
+                <property>
+                    <name>!env.JAVA_HOME8</name>
+                </property>
+            </activation>
+            <properties>
+                <mr.base.jdk.home>${java.home}</mr.base.jdk.home>
+            </properties>
+        </profile>
+        <!--
+            JDK9+ 覆盖层：仅在使用 JDK9 及以上构建时编译。
+            产物输出到 META-INF/versions/9，由 JVM 在 JDK9+ 上优先加载。
+            JDK9+ overlay: compiled only when building with JDK9 or above.
+            Output goes to META-INF/versions/9 and is preferred by the JVM on JDK9+.
+        -->
+        <profile>
+            <id>mr-java9</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile-java9</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <compileSourceRoots>
+                                        <compileSourceRoot>${project.basedir}/src/main/java9</compileSourceRoot>
+                                    </compileSourceRoots>
+                                    <outputDirectory>${mr.java9.output}</outputDirectory>
+                                    <source>9</source>
+                                    <target>9</target>
+                                    <fork>false</fork>
+                                    <compilerArgs>
+                                        <arg>--add-exports</arg>
+                                        <arg>java.base/jdk.internal.vm.annotation=ALL-UNNAMED</arg>
+                                        <arg>-Xlint:-options</arg>
+                                    </compilerArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

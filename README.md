@@ -99,14 +99,36 @@ The last option is the default.
 - `-Dfrogspawn.max.capacity`: Maximum pool capacity, default: 67108864 (65536*1024)
 - `-Dfrogspawn.cache.capacity`: Thread cache capacity, default: 8, maximum: 64. Setting to `1` provides maximum performance.
 
+## Java Version & Multi-Release JAR
+
+`frogspawn` is packaged as a **Multi-Release JAR** with a JDK8 base layer:
+
+| Layer | Source root | Class file | Loaded on |
+|-------|-------------|------------|-----------|
+| Common + JDK8 | `src/main/java` + `src/main/java8` | 52 (Java 8) | JDK8+ |
+| JDK9+ overlay | `src/main/java9` | 53 (Java 9) | JDK9+ |
+
+- `src/main/java`: only JDK-independent code.
+- `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe` and `sun.misc.Contended`.
+- `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended`.
+
+Build a full MR-JAR with both JDK8 and JDK9+:
+
+```bash
+export JAVA_HOME8=/path/to/jdk8
+export JAVA_HOME=/path/to/jdk9+
+mvn -f frogspawn/pom.xml clean package
+```
+
+`-Dmr.base.jdk.home=/path/to/jdk8` overrides `JAVA_HOME8`. Building with JDK8 alone
+still produces a valid MR-JAR, but without the JDK9+ overlay.
+
 ## False Sharing Considerations
 
-**The following content requires running on JDK8 specifically - no higher, no lower!!**
-
-[`@sun.misc.Contended` Source Code](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
-The annotation mentions it may be ineffective for subclasses. Therefore, current usage in the code might be ineffective.
-
-Additional documentation states that the `@Contended` annotation requires JVM parameter `-XX:-RestrictContended` to be enabled.
+- On JDK8 the base class uses `sun.misc.Contended`.
+- On JDK9+ the versioned class uses `jdk.internal.vm.annotation.Contended`.
+- Additional documentation states that the `@Contended` annotation requires JVM parameter
+  `-XX:-RestrictContended` to be enabled for user classes.
 
 ## Changelog
 

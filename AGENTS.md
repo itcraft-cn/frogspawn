@@ -9,16 +9,52 @@ frogspawn 是一个高性能 Java 对象池，专注于 GC 友好和低延迟场
 ```
 frogspawn/                   # 主库模块
 ├── src/main/java/cn/itcraft/frogspawn/
-│   ├── offheap/             # 非堆内存池实现
+│   ├── offheap/             # 非堆内存池接口与平台无关逻辑
 │   ├── local/               # 堆内存池实现
 │   ├── strategy/            # 池策略
-│   ├── misc/                # 工具类（PaddedAtomicLong等）
-│   ├── util/                # 通用工具类
+│   ├── misc/                # 平台无关工具类
+│   ├── util/                # 平台无关工具类
 │   ├── constants/           # 常量定义
 │   └── data/                # 数据封装类
+├── src/main/java8/          # JDK8 专有实现（sun.misc.Unsafe / sun.misc.Contended）
+├── src/main/java9/          # JDK9+ 覆盖实现（META-INF/versions/9）
 frogspawn-test/              # 测试模块
 ├── src/test/java/           # 单元测试和基准测试
 ```
+
+## MR-JAR 源码分层
+
+本项目以 JDK8 为 base 发布 Multi-Release JAR：
+
+| 源码目录 | 内容 | 编译 JDK | Class 版本 |
+|---------|------|----------|-----------|
+| `src/main/java` | 与 JDK 版本无关的代码 | JDK8 | 52 |
+| `src/main/java8` | 直接依赖 `sun.misc.*` 的实现 | JDK8 | 52 |
+| `src/main/java9` | JDK9+ 覆盖实现 | JDK9+ | 53 |
+
+约束：
+
+1. 只有真正与 JDK 版本无关的代码才能放 `src/main/java`。
+2. 任何 `sun.misc.*`、`sun.misc.Unsafe` 相关实现必须放 `src/main/java8`。
+3. 需要按 JDK 版本覆盖的类放 `src/main/java9`，包名与类名必须和 base 完全一致。
+4. 新增 JDK 专有实现时，优先抽取平台无关接口，避免复制整段业务逻辑。
+
+## MR-JAR 构建
+
+```bash
+# 完整 MR-JAR：JDK8 编译 base，JDK9+ 编译覆盖层
+export JAVA_HOME8=/path/to/jdk8
+export JAVA_HOME=/path/to/jdk9+
+mvn -f frogspawn/pom.xml clean package
+
+# 指定 JDK8 路径（覆盖 JAVA_HOME8）
+mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
+```
+
+- 只用 JDK8 构建时 `mr-java9` profile 不激活，产物仍是合法 MR-JAR，但不含
+  `META-INF/versions/9` 覆盖类。
+- 发布前应使用 JDK9+ 执行一次完整构建，并校验 jar 内存在
+  `META-INF/versions/9` 目录与 `Multi-Release: true` 清单项。
 
 ## 性能测试结果
 

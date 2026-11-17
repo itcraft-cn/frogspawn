@@ -99,14 +99,35 @@ try{
 - `-Dfrogspawn.max.capacity`，池最大容量，默认值：67108864，即 65536*1024
 - `-Dfrogspawn.cache.capacity`, 线程缓存容量, 默认值: 8，最大值: 64。 设置为 `1` 能获得最大性能。
 
+## Java 版本与 MR-JAR
+
+`frogspawn` 以 **Multi-Release JAR** 形式发布，base 层为 JDK8：
+
+| 层 | 源码目录 | Class 版本 | 生效 JDK |
+|----|---------|-----------|----------|
+| 公共 + JDK8 | `src/main/java` + `src/main/java8` | 52 (Java 8) | JDK8+ |
+| JDK9+ 覆盖层 | `src/main/java9` | 53 (Java 9) | JDK9+ |
+
+- `src/main/java`：只放与 JDK 版本无关的代码。
+- `src/main/java8`：JDK8 专有实现，包括 `sun.misc.Unsafe`、`sun.misc.Contended`。
+- `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended`。
+
+同时使用 JDK8 与 JDK9+ 构建完整 MR-JAR：
+
+```bash
+export JAVA_HOME8=/path/to/jdk8
+export JAVA_HOME=/path/to/jdk9+
+mvn -f frogspawn/pom.xml clean package
+```
+
+可用 `-Dmr.base.jdk.home=/path/to/jdk8` 覆盖 `JAVA_HOME8`。只用 JDK8 构建也能得到
+合法的 MR-JAR，只是不含 JDK9+ 覆盖层。
+
 ## 伪共享相关
 
-**以下内容需依赖 `JDK8` 下运行，不能高，不能低!!**
-
-[`@sun.misc.Contended` 源代码](https://github.com/openjdk/jdk/blob/jdk8-b120/jdk/src/share/classes/sun/misc/Contended.java)
-里面的注解中说到，对子类可能无效。所以，当前代码中的使用，可能是无效的。
-
-另有文档说，`@Contended` 注解需要 `JVM` 开启参数 `-XX:-RestrictContended` 。
+- JDK8 下 base 类使用 `sun.misc.Contended`。
+- JDK9+ 下覆盖类使用 `jdk.internal.vm.annotation.Contended`。
+- 另有文档说，`@Contended` 注解需要 `JVM` 为用户类开启参数 `-XX:-RestrictContended`。
 
 ## 更新记录
 
