@@ -41,10 +41,8 @@ frogspawn-test/              # 测试模块
 2. 任何 `sun.misc.*`、`sun.misc.Unsafe` 相关实现必须放 `src/main/java8`。
 3. 需要按 JDK 版本覆盖的类放 `src/main/java9`，包名与类名必须和 base 完全一致。
 4. 新增 JDK 专有实现时，优先抽取平台无关接口，避免复制整段业务逻辑。
-5. 平台相关访问统一通过 `cn.itcraft.frogspawn.platform.MemoryAccess` SPI；
-   `src/main/java9` 不得直接 `import sun.misc.*`，原生内存分配复用 `RawMemoryUtil`。
-6. JDK24+ 的 `src/main/java24` 必须完全不使用 `sun.misc.*`，原生内存使用
-   `java.lang.foreign.MemorySegment`，数组访问使用 `VarHandle`。
+5. 平台相关访问统一通过 `cn.itcraft.frogspawn.platform.MemoryAccess` SPI；`src/main/java9` 不得直接 `import sun.misc.*`，原生内存分配复用 `RawMemoryUtil`。
+6. JDK24+ 的 `src/main/java24` 必须完全不使用 `sun.misc.*`，原生内存使用 `java.lang.foreign.MemorySegment`，数组访问使用 `VarHandle`。
 
 ## MR-JAR 构建
 
@@ -58,30 +56,22 @@ mvn -f frogspawn/pom.xml clean package
 mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 ```
 
-- 只用 JDK8 构建时 `mr-java9` / `mr-java24` profile 不激活，产物仍是合法 MR-JAR，
-  但不含 `META-INF/versions/9` / `versions/24` 覆盖类。
-- 发布前应使用 JDK24+ 执行一次完整构建，并校验 jar 内存在
-  `META-INF/versions/9`、`META-INF/versions/24` 目录与 `Multi-Release: true` 清单项。
+- 只用 JDK8 构建时 `mr-java9` / `mr-java24` profile 不激活，产物仍是合法 MR-JAR，但不含 `META-INF/versions/9` / `versions/24` 覆盖类。
+- 发布前应使用 JDK24+ 执行一次完整构建，并校验 jar 内存在 `META-INF/versions/9`、`META-INF/versions/24` 目录与 `Multi-Release: true` 清单项。
 
 ### MR-JAR 硬约束
 
-1. base 层不能用 `--release 8` 编译：`sun.misc.Unsafe` 不在 `ct.sym` 的 Java 8 签名里。
-   本项目保持 `source/target 8`，并用 JDK8 `javac` 编译 base。
-2. 版本化类只在**从 jar 加载**时生效；跑 `target/classes` 的单测永远测基础版。
-   必须对成品 jar 验证版本层选择（见 `MrJarLayoutTest`）。
+1. base 层不能用 `--release 8` 编译：`sun.misc.Unsafe` 不在 `ct.sym` 的 Java 8 签名里。本项目保持 `source/target 8`，并用 JDK8 `javac` 编译 base。
+2. 版本化类只在**从 jar 加载**时生效；跑 `target/classes` 的单测永远测基础版。必须对成品 jar 验证版本层选择（见 `MrJarLayoutTest`）。
 3. 版本化类与基础类必须同名同签名；版本化实现只依赖基础公共 API，不得引用旧 JDK 才有的类。
-4. 后端选择由 MR-JAR 版本目录决定（base / `versions/9` / `versions/24`），不额外引入系统属性开关；
-   如后续新增开关，启动日志必须打印实际后端。
-5. `src/main/java24` 使用 `MemorySegment`；如使用 restricted method，按实际 JDK 版本确认是否需要
-   `--enable-native-access`。当前 JDK25/27 已验证无需额外参数。
-6. 平台桥接保持叶子形态：`PlatformMemory` / `MemoryAccess` 是唯一后端入口；热路径使用
-   `static final` 常量，避免在业务代码中散落后端判断。
+4. 后端选择由 MR-JAR 版本目录决定（base / `versions/9` / `versions/24`），不额外引入系统属性开关；如后续新增开关，启动日志必须打印实际后端。
+5. `src/main/java24` 使用 `MemorySegment`；如使用 restricted method，按实际 JDK 版本确认是否需要 `--enable-native-access`。当前 JDK25/27 已验证无需额外参数。
+6. 平台桥接保持叶子形态：`PlatformMemory` / `MemoryAccess` 是唯一后端入口；热路径使用 `static final` 常量，避免在业务代码中散落后端判断。
 
 验收清单：
 
 - JDK8 `clean test` 全绿；JDK24+ `clean package` 全绿。
-- 成品 jar 根目录含基础实现，`versions/9`、`versions/24` 含覆盖实现，manifest 含
-  `Multi-Release: true`。
+- 成品 jar 根目录含基础实现，`versions/9`、`versions/24` 含覆盖实现，manifest 含 `Multi-Release: true`。
 - 同一 jar 在 JDK8 / JDK21 / JDK25 上运行探针，各自报告预期后端。
 - `sources.jar` 可追溯到 `java8`、`java9`、`java24` 源码。
 
@@ -89,8 +79,7 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 
 ### JMH 吞吐对比（4 场景）
 
-环境：Intel Core Ultra 9 285H / 16 vCPU，4GB heap，4 threads，10×100ms warmup，
-5×20ms measurement，fork 3。
+环境：Intel Core Ultra 9 285H / 16 vCPU，4GB heap，4 threads，10×100ms warmup，5×20ms measurement，fork 3。
 
 | 场景 | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
 |------|--------------:|---------------:|-------------:|
@@ -99,15 +88,7 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 | FixedOffHeap Pool | 300.25 | 295.75 | 0.985x |
 | new | 363.17 | 359.22 | 0.989x |
 
-结论：小对象、无 GC 压力时 Heap 最快；OffHeap 在 JDK25 已接近 Heap；FixedOffHeap 的微基准
-吞吐较低，其价值在固定地址、零分配、大对象与 GC 敏感场景。**Heap 模式最大的优势是平滑 GC
-带来的延迟抖动**：预分配/复用降低分配速率，线程本地缓存降低竞争，减少 GC 次数与 pause，
-使 p95/p99.9 更稳定。具体生产数据因环境、负载与 GC 配置而异，需结合 on/off 对比与
-GC 日志归因。
-详见 [`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。
-超大对象（1MB）结果见
-[`doc/review/jmh-20261117-002-large-objects.md`](doc/review/jmh-20261117-002-large-objects.md)：
-池化 fetch/release 比 `new` 快约 3 个数量级，JDK25 OffHeap（MemorySegment）达到 673 ops/us。
+结论：小对象、无 GC 压力时 Heap 最快；OffHeap 在 JDK25 已接近 Heap；FixedOffHeap 的微基准吞吐较低，其价值在固定地址、零分配、大对象与 GC 敏感场景。**Heap 模式最大的优势是平滑 GC 带来的延迟抖动**：预分配/复用降低分配速率，线程本地缓存降低竞争，减少 GC 次数与 pause，使 p95/p99.9 更稳定。具体生产数据因环境、负载与 GC 配置而异，需结合 on/off 对比与 GC 日志归因。详见 [`doc/review/jmh-20261117-001-heap-offheap.md`](doc/review/jmh-20261117-001-heap-offheap.md)。超大对象（1MB）结果见 [`doc/review/jmh-20261117-002-large-objects.md`](doc/review/jmh-20261117-002-large-objects.md)：池化 fetch/release 比 `new` 快约 3 个数量级，JDK25 OffHeap（MemorySegment）达到 673 ops/us。
 
 ### 小对象 (~64 bytes) - GC 压力测试
 
@@ -218,8 +199,7 @@ GC 日志归因。
 
 首选 mvnd，次选 mvn。
 
-本机 Java 工具链（SpotBugs、PMD、Arthas、async-profiler、jitwatch、堆转储解析等）的路径与用途见
-skill `/java-env`，模板不重复维护机器事实。
+本机 Java 工具链（SpotBugs、PMD、Arthas、async-profiler、jitwatch、堆转储解析等）的路径与用途见 skill `/java-env`，模板不重复维护机器事实。
 
 ## Build/Lint/Test Commands
 

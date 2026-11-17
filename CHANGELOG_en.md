@@ -29,25 +29,18 @@
 - Added the `cn.itcraft.frogspawn.platform.MemoryAccess` platform SPI:
   - `java8` uses `sun.misc.Unsafe`
   - `java9` uses `VarHandle` for array access and reuses `RawMemoryUtil`
-  - `java24` uses `java.lang.foreign.MemorySegment` for allocation/free, primitive access
-    and `copyFrom`, with `VarHandle` for array access, and uses no `sun.misc.*`
-  - `ArrayUtil`, `FixedOffHeapPool` and `OffHeapObjectsMemoryPoolImpl` no longer depend on
-    `Unsafe` directly
+  - `java24` uses `java.lang.foreign.MemorySegment` for allocation/free, primitive access and `copyFrom`, with `VarHandle` for array access, and uses no `sun.misc.*`
+  - `ArrayUtil`, `FixedOffHeapPool` and `OffHeapObjectsMemoryPoolImpl` no longer depend on `Unsafe` directly
 - Added the `META-INF/versions/24` overlay
-- Added `FixedOffHeapObject.buffer()` (unsupported by default) and
-  `PlatformMemory.asByteBuffer(address, size)`; on JDK24+ it creates a zero-copy
-  `ByteBuffer` view via `MemorySegment.asByteBuffer()`
+- Added `FixedOffHeapObject.buffer()` (unsupported by default) and `PlatformMemory.asByteBuffer(address, size)`; on JDK24+ it creates a zero-copy `ByteBuffer` view via `MemorySegment.asByteBuffer()`
 - `FixedOffHeapPool` fixes:
   - exhaustion/retry no longer returns an unmanaged object; it throws `IllegalStateException`
   - ownership validation and `IN_USE/AVAILABLE` state CAS reject duplicate/foreign releases
   - shared-stack operations are lock-protected to remove the copy/overwrite race
-- `PrimitiveStructure` adds a default `getArrayElementSize`; arrays are allocated by actual
-  element width
-- `OffHeapMemInfo` keeps the manually tuned padding byte count and accumulates it into
-  `totalPadding`
+- `PrimitiveStructure` adds a default `getArrayElementSize`; arrays are allocated by actual element width
+- `OffHeapMemInfo` keeps the manually tuned padding byte count and accumulates it into `totalPadding`
 - `ClassChecker` moves `Field.setAccessible` into `AccessController.doPrivileged`
-- `sources.jar` now maps `src/main/java9` and `src/main/java24` into
-  `META-INF/versions/9` and `META-INF/versions/24`
+- `sources.jar` now maps `src/main/java9` and `src/main/java24` into `META-INF/versions/9` and `META-INF/versions/24`
 - Added `FixedOffHeapPoolTest` and `UnifiedPoolApiTest` regression tests
 
 ### API
@@ -56,12 +49,10 @@
   - `PoolConfig`: `heap(...)` / `offHeap(...)` / `fixedOffHeap(...)`
   - `ObjectsMemoryPoolFactory.newPool(creator, PoolConfig)`
 - Existing factory methods are kept and delegate to the unified entry
-- `fetch` / `release` remain identical for all pool types; off-heap types validate the
-  object interface at creation time
+- `fetch` / `release` remain identical for all pool types; off-heap types validate the object interface at creation time
 
 ### Performance
-- Added the unified JMH benchmark `AllPoolsBenchmark` with four scenarios:
-  Heap Pool / OffHeap Pool / FixedOffHeap Pool / `new`
+- Added the unified JMH benchmark `AllPoolsBenchmark` with four scenarios: Heap Pool / OffHeap Pool / FixedOffHeap Pool / `new`
 - JDK8 vs JDK25 (4 threads, 10×100ms warmup, 5×20ms measurement, fork 3):
 
 | Scenario | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
@@ -71,26 +62,20 @@
 | FixedOffHeap Pool | 300.25 | 295.75 | 0.985x |
 | new | 363.17 | 359.22 | 0.989x |
 
-- The JDK25 `versions/24` MemorySegment implementation shows no regression; OffHeap is close
-  to Heap.
-- FixedOffHeap has lower throughput in this microbenchmark; its value is fixed addresses,
-  zero allocation, large objects and GC-sensitive workloads.
-- Added a 1MB large-object JMH benchmark: pooled fetch/release is about three orders of
-  magnitude faster than `new`; JDK25 OffHeap (MemorySegment) reaches 673 ops/us. See
-  `doc/review/jmh-20261117-002-large-objects.md`.
+- The JDK25 `versions/24` MemorySegment implementation shows no regression; OffHeap is close to Heap.
+- FixedOffHeap has lower throughput in this microbenchmark; its value is fixed addresses, zero allocation, large objects and GC-sensitive workloads.
+- Added a 1MB large-object JMH benchmark: pooled fetch/release is about three orders of magnitude faster than `new`; JDK25 OffHeap (MemorySegment) reaches 673 ops/us. See `doc/review/jmh-20261117-002-large-objects.md`.
 
 ### Documentation
 - Split README into Chinese `README.md` and English `README_en.md`
 - Split changelog into Chinese `CHANGELOG.md` and English `CHANGELOG_en.md`
 - Added Chinese `MANUAL.md` and English `MANUAL_en.md`
-- Documented that Heap mode's biggest advantage is smoothing GC-induced latency jitter;
-  production figures are environment/workload dependent and intentionally not published
+- Documented that Heap mode's biggest advantage is smoothing GC-induced latency jitter; production figures are environment/workload dependent and intentionally not published
 
 ## v0.6
 
 ### Performance
-- **SimpleStackCache replaced SoftRefStore**: O(1) fetch/release, significant throughput
-  improvement (~479%)
+- **SimpleStackCache replaced SoftRefStore**: O(1) fetch/release, significant throughput improvement (~479%)
 - **Removed prefetch**: simplified pool implementation and reduced complexity
 
 ### Refactoring

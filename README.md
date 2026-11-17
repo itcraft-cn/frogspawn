@@ -77,10 +77,7 @@ PoolConfig.offHeap(1024);
 PoolConfig.fixedOffHeap(10000, 64);
 ```
 
-`OFF_HEAP` 要求对象实现 `PrimitiveStructure`；`FIXED_OFF_HEAP` 要求实现
-`FixedOffHeapObject`。工厂会校验 creator 的返回类型，不匹配时抛出
-`IllegalArgumentException`。原有 `newPool` / `newOffHeapPool` / `newFixedOffHeapPool`
-方法继续保留，兼容旧代码。
+`OFF_HEAP` 要求对象实现 `PrimitiveStructure`；`FIXED_OFF_HEAP` 要求实现 `FixedOffHeapObject`。工厂会校验 creator 的返回类型，不匹配时抛出 `IllegalArgumentException`。原有 `newPool` / `newOffHeapPool` / `newFixedOffHeapPool` 方法继续保留，兼容旧代码。
 
 ## 三种可选模式
 
@@ -133,18 +130,14 @@ PoolConfig.fixedOffHeap(10000, 64);
 
 - `src/main/java`：只放与 JDK 版本无关的代码。
 - `src/main/java8`：JDK8 专有实现，包括 `sun.misc.Unsafe`、`sun.misc.Contended`、`RawMemoryUtil`。
-- `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended` 以及基于
-  `VarHandle` 的 `MemoryAccessImpl`。
-- `src/main/java24`：JDK24+ 覆盖实现，使用 `java.lang.foreign.MemorySegment`，完全不使用
-  `sun.misc.*`。
+- `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended` 以及基于 `VarHandle` 的 `MemoryAccessImpl`。
+- `src/main/java24`：JDK24+ 覆盖实现，使用 `java.lang.foreign.MemorySegment`，完全不使用 `sun.misc.*`。
 
 平台相关访问统一走 `cn.itcraft.frogspawn.platform.MemoryAccess`：
 - JDK8 使用 `sun.misc.Unsafe`。
 - JDK9-23 使用 `VarHandle` 访问数组，原生内存使用 `RawMemoryUtil`。
-- JDK24+ 使用 `MemorySegment` 完成分配/释放、基本类型访问与 `copyFrom`，数组访问使用
-  `VarHandle`，JDK24+ 实现不再加载 `sun.misc.Unsafe`。
-- `FixedOffHeapObject.buffer()` 提供可选的零拷贝 `ByteBuffer` 视图：JDK24+ 通过
-  `MemorySegment.asByteBuffer()` 创建，JDK8-23 可由实现持有 direct `ByteBuffer`。
+- JDK24+ 使用 `MemorySegment` 完成分配/释放、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`，JDK24+ 实现不再加载 `sun.misc.Unsafe`。
+- `FixedOffHeapObject.buffer()` 提供可选的零拷贝 `ByteBuffer` 视图：JDK24+ 通过 `MemorySegment.asByteBuffer()` 创建，JDK8-23 可由实现持有 direct `ByteBuffer`。
 
 同时使用 JDK8 与 JDK24+ 构建完整 MR-JAR：
 
@@ -154,8 +147,7 @@ export JAVA_HOME=/path/to/jdk24+
 mvn -f frogspawn/pom.xml clean package
 ```
 
-可用 `-Dmr.base.jdk.home=/path/to/jdk8` 覆盖 `JAVA_HOME8`。只用 JDK8 构建也能得到
-合法的 MR-JAR，只是不含 `META-INF/versions/9` 与 `META-INF/versions/24` 覆盖层。
+可用 `-Dmr.base.jdk.home=/path/to/jdk8` 覆盖 `JAVA_HOME8`。只用 JDK8 构建也能得到合法的 MR-JAR，只是不含 `META-INF/versions/9` 与 `META-INF/versions/24` 覆盖层。
 
 ## 伪共享相关
 
@@ -167,9 +159,7 @@ mvn -f frogspawn/pom.xml clean package
 
 ### JMH 吞吐对比（4 场景）
 
-环境：Intel Core Ultra 9 285H / 16 vCPU，4GB heap，4 threads，10×100ms warmup，
-5×20ms measurement，fork 3。JDK8 使用 base 实现，JDK25 使用 `versions/24` 的
-`MemorySegment` 实现。
+环境：Intel Core Ultra 9 285H / 16 vCPU，4GB heap，4 threads，10×100ms warmup，5×20ms measurement，fork 3。JDK8 使用 base 实现，JDK25 使用 `versions/24` 的 `MemorySegment` 实现。
 
 | 场景 | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
 |------|--------------:|---------------:|-------------:|
@@ -207,8 +197,7 @@ mvn -f frogspawn/pom.xml clean package
 
 GC 压力结论：
 
-- **FixedOffHeapPool** 在大对象与 GC 敏感场景最优，零 GC，原生 reset 走
-  `MemoryAccess.setMemory`（JDK8-23 为 `UNSAFE.setMemory`，JDK24+ 为 `MemorySegment.fill`）。
+- **FixedOffHeapPool** 在大对象与 GC 敏感场景最优，零 GC，原生 reset 走 `MemoryAccess.setMemory`（JDK8-23 为 `UNSAFE.setMemory`，JDK24+ 为 `MemorySegment.fill`）。
 - **HeapPool** 的大对象 reset（数组清零）开销可能高于 JVM 新建对象。
 - **new** 在压力下可能触发 GC。
 
@@ -222,8 +211,7 @@ Heap 模式最大的优势不是纯 `fetch/release` 吞吐，而是**平滑 GC �
 
 在固定线程池、固定处理链路的低延迟系统中，这种“方差优化”通常比“均值优化”更有价值。
 
-具体生产数据因环境、负载与 GC 配置而异；frogspawn 的贡献应通过 GC 次数/停顿、
-分配速率、以及 p99.9 与 GC pause 的相关性来验证。
+具体生产数据因环境、负载与 GC 配置而异；frogspawn 的贡献应通过 GC 次数/停顿、分配速率、以及 p99.9 与 GC pause 的相关性来验证。
 
 ## 选型认知
 

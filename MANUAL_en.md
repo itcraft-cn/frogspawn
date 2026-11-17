@@ -2,8 +2,7 @@
 
 [Chinese version](MANUAL.md) | [README](README_en.md) | [Changelog](CHANGELOG_en.md)
 
-This manual covers object contracts, the unified creation API, pool selection, MR-JAR
-build/runtime behavior and common issues.
+This manual covers object contracts, the unified creation API, pool selection, MR-JAR build/runtime behavior and common issues.
 
 ## 1. Requirements
 
@@ -13,8 +12,7 @@ build/runtime behavior and common issues.
 | Full MR-JAR build | JDK8 (base) + JDK24+ (`versions/9` and `versions/24`) |
 | Build tool | `mvnd` preferred, `mvn` fallback |
 
-On JDK24+ the runtime loads `META-INF/versions/24`; native memory is managed by
-`java.lang.foreign.MemorySegment` and `sun.misc.Unsafe` is not loaded.
+On JDK24+ the runtime loads `META-INF/versions/24`; native memory is managed by `java.lang.foreign.MemorySegment` and `sun.misc.Unsafe` is not loaded.
 
 ## 2. Dependency and build
 
@@ -157,8 +155,7 @@ newFixedOffHeapPool(creator, capacity, objectSize)
 - `reset()` must not clear pool-managed identity fields:
   - Heap pool `markId` (set by the pool for return lookup);
   - Fixed off-heap `index` / `address` (set by the pool; clearing them breaks the object).
-- If `isInvalid()` returns `true`, the heap pool drops the cached object and fetches from
-  the main pool again.
+- If `isInvalid()` returns `true`, the heap pool drops the cached object and fetches from the main pool again.
 
 ### 6.2 PrimitiveStructure (dynamic off-heap)
 
@@ -166,15 +163,12 @@ Required methods:
 
 - `getAddress()` / `setAddress(long)`: the pool writes back the allocated address.
 - `getObjectSize()`: object body size in bytes.
-- `getArrayFieldCount()` / `getArrayLength(int)` / `getArrayAddress(int)` /
-  `setArrayAddress(int, long)`: array field management.
-- `getArrayElementSize(int)`: element width; defaults to 8 bytes. Return 4 for `int[]`,
-  1 for `byte[]`.
+- `getArrayFieldCount()` / `getArrayLength(int)` / `getArrayAddress(int)` / `setArrayAddress(int, long)`: array field management.
+- `getArrayElementSize(int)`: element width; defaults to 8 bytes. Return 4 for `int[]`, 1 for `byte[]`.
 - `writeToMemory()` / `readFromMemory()`: copy between object and native memory.
 - `hasDataToWrite()`: return `false` to skip writing.
 
-Array memory is allocated by the pool as `length × elementSize`; do not allocate it again
-in the implementation.
+Array memory is allocated by the pool as `length × elementSize`; do not allocate it again in the implementation.
 
 ### 6.3 FixedOffHeapObject (fixed off-heap)
 
@@ -184,8 +178,7 @@ Required methods:
 - `address()` / `address(long)`: fixed address assigned by the pool.
 - `reset()`: reset business fields only; **do not** clear `index` / `address`.
 
-`FixedOffHeapPool` pre-creates all objects and owns one native block; object addresses are
-fixed for the pool lifetime. The pool is `AutoCloseable`; close it when done:
+`FixedOffHeapPool` pre-creates all objects and owns one native block; object addresses are fixed for the pool lifetime. The pool is `AutoCloseable`; close it when done:
 
 ```java
 ObjectsMemoryPool<MyFixedPojo> pool = ObjectsMemoryPoolFactory.newPool(
@@ -201,11 +194,9 @@ After `close()`, `fetch/release` throws `IllegalStateException`.
 
 #### Zero-Copy ByteBuffer View
 
-`FixedOffHeapObject.buffer()` throws `UnsupportedOperationException` by default; implementations
-may override it:
+`FixedOffHeapObject.buffer()` throws `UnsupportedOperationException` by default; implementations may override it:
 
-- **JDK24+**: use `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`, backed by
-  `MemorySegment.asByteBuffer()`. It can be passed directly to `FileChannel` / `SocketChannel`:
+- **JDK24+**: use `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`, backed by `MemorySegment.asByteBuffer()`. It can be passed directly to `FileChannel` / `SocketChannel`:
 
   ```java
   @Override
@@ -214,9 +205,7 @@ may override it:
   }
   ```
 
-- **JDK8-23**: there is no public API to wrap an arbitrary address as a `ByteBuffer`; the
-  implementation should hold a `ByteBuffer.allocateDirect(OBJECT_SIZE)` and return it from
-  `buffer()`, associating `address()` with that buffer.
+- **JDK8-23**: there is no public API to wrap an arbitrary address as a `ByteBuffer`; the implementation should hold a `ByteBuffer.allocateDirect(OBJECT_SIZE)` and return it from `buffer()`, associating `address()` with that buffer.
 
 Notes:
 
@@ -236,8 +225,7 @@ Notes:
 
 `FetchFailStrategy`: `NOT_AVAILABLE` / `NULLABLE` / `CALL_CREATOR`.
 
-Strategies currently apply to the heap pool only; off-heap and fixed pools create a new
-object or throw `IllegalStateException` according to their own semantics.
+Strategies currently apply to the heap pool only; off-heap and fixed pools create a new object or throw `IllegalStateException` according to their own semantics.
 
 ## 8. System properties
 
@@ -287,27 +275,20 @@ Selection guidance:
 
 - Small objects, short lifetime, throughput first: **Heap**.
 - Large objects, large capacity, GC-sensitive, tail-latency-sensitive: **OffHeap**.
-- Fixed-size records, stable addresses, zero allocation, native/network/serialization
-  interop: **FixedOffHeap**.
-- FixedOffHeap has lower microbenchmark throughput than Heap/OffHeap; that is the cost of
-  fixed addresses and correctness validation. Its value is GC pressure, fixed addresses and
-  zero allocation.
+- Fixed-size records, stable addresses, zero allocation, native/network/serialization interop: **FixedOffHeap**.
+- FixedOffHeap has lower microbenchmark throughput than Heap/OffHeap; that is the cost of fixed addresses and correctness validation. Its value is GC pressure, fixed addresses and zero allocation.
 
 ### Heap Mode's Biggest Advantage: Smoothing GC-Induced Latency Jitter
 
-The biggest advantage of Heap mode is not raw `fetch/release` throughput, but **smoothing
-GC-induced latency jitter**:
+The biggest advantage of Heap mode is not raw `fetch/release` throughput, but **smoothing GC-induced latency jitter**:
 
 - pre-allocation + reuse reduce the allocation rate;
 - thread-local caches reduce shared-pool contention;
 - fewer GC cycles and shorter pauses make p95 / p99.9 more stable.
 
-In a low-latency system with a fixed thread pool and a fixed processing pipeline, this
-"variance optimization" is often more valuable than "mean optimization".
+In a low-latency system with a fixed thread pool and a fixed processing pipeline, this "variance optimization" is often more valuable than "mean optimization".
 
-Production figures vary with environment, workload and GC configuration; attribute
-frogspawn's contribution via GC count/pause, allocation rate, and the correlation between
-p99.9 and GC pauses.
+Production figures vary with environment, workload and GC configuration; attribute frogspawn's contribution via GC count/pause, allocation rate, and the correlation between p99.9 and GC pauses.
 
 See the [JMH report](doc/review/jmh-20261117-001-heap-offheap.md) for details.
 
@@ -315,14 +296,11 @@ See the [JMH report](doc/review/jmh-20261117-001-heap-offheap.md) for details.
 
 ### 11.1 FixedOffHeapPool exhausted
 
-The fixed pool throws `IllegalStateException` when exhausted. Increase the capacity in
-`PoolConfig.fixedOffHeap(capacity, ...)`, or ensure every `fetch()` has a matching
-`release()`.
+The fixed pool throws `IllegalStateException` when exhausted. Increase the capacity in `PoolConfig.fixedOffHeap(capacity, ...)`, or ensure every `fetch()` has a matching `release()`.
 
 ### 11.2 Object does not belong to this pool
 
-`release` only accepts objects created by the same pool and rejects double releases. Check
-for returning an object to the wrong pool or calling `release` twice.
+`release` only accepts objects created by the same pool and rejects double releases. Check for returning an object to the wrong pool or calling `release` twice.
 
 ### 11.3 Objects contain stale data
 
@@ -338,8 +316,7 @@ JDK24+ should load `META-INF/versions/24`. Check with:
 java -verbose:class -cp frogspawn.jar YourMain 2>&1 | grep MemoryAccessImpl
 ```
 
-You should see `MemoryAccessImpl$Allocation` (the MemorySegment implementation). If the
-base implementation is loaded, verify the jar manifest contains `Multi-Release: true`.
+You should see `MemoryAccessImpl$Allocation` (the MemorySegment implementation). If the base implementation is loaded, verify the jar manifest contains `Multi-Release: true`.
 
 ## 12. Related documents
 

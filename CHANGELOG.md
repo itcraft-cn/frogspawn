@@ -27,13 +27,10 @@
 - 新增 `cn.itcraft.frogspawn.platform.MemoryAccess` 平台 SPI：
   - `java8` 实现使用 `sun.misc.Unsafe`
   - `java9` 实现使用 `VarHandle` 访问数组，原生内存复用 `RawMemoryUtil`
-  - `java24` 实现完全不使用 `sun.misc.*`，使用 `java.lang.foreign.MemorySegment`
-    分配/释放内存、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`
+  - `java24` 实现完全不使用 `sun.misc.*`，使用 `java.lang.foreign.MemorySegment` 分配/释放内存、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`
   - `ArrayUtil`、`FixedOffHeapPool`、`OffHeapObjectsMemoryPoolImpl` 不再直接依赖 `Unsafe`
 - MR-JAR 新增 `META-INF/versions/24` 覆盖层
-- `FixedOffHeapObject` 新增 `buffer()` 默认方法（默认抛 `UnsupportedOperationException`）；
-  `PlatformMemory.asByteBuffer(address, size)` 在 JDK24+ 基于
-  `MemorySegment.asByteBuffer()` 提供零拷贝 `ByteBuffer` 视图
+- `FixedOffHeapObject` 新增 `buffer()` 默认方法（默认抛 `UnsupportedOperationException`）；`PlatformMemory.asByteBuffer(address, size)` 在 JDK24+ 基于 `MemorySegment.asByteBuffer()` 提供零拷贝 `ByteBuffer` 视图
 
 ### API
 - 新增统一池创建入口：
@@ -66,16 +63,13 @@
 
 - JDK25 的 `versions/24` MemorySegment 实现无性能回退；OffHeap 已接近 Heap。
 - FixedOffHeap 的微基准吞吐较低，价值在固定地址、零分配、大对象与 GC 敏感场景。
-- 新增 1MB 超大对象 JMH 基准：池化 fetch/release 比 `new` 快约 3 个数量级；
-  JDK25 OffHeap（MemorySegment）达到 673 ops/us。详见
-  `doc/review/jmh-20261117-002-large-objects.md`。
+- 新增 1MB 超大对象 JMH 基准：池化 fetch/release 比 `new` 快约 3 个数量级；JDK25 OffHeap（MemorySegment）达到 673 ops/us。详见 `doc/review/jmh-20261117-002-large-objects.md`。
 
 ### 文档
 - README 拆分为中文 `README.md` / 英文 `README_en.md`
 - 更新记录拆分为中文 `CHANGELOG.md` / 英文 `CHANGELOG_en.md`
 - 新增中文 `MANUAL.md` / 英文 `MANUAL_en.md` 使用手册
-- 明确 Heap 模式最大优势是平滑 GC 带来的延迟抖动；具体生产数据因环境、负载与 GC 配置而异，
-  公开文档不记录具体数字
+- 明确 Heap 模式最大优势是平滑 GC 带来的延迟抖动；具体生产数据因环境、负载与 GC 配置而异，公开文档不记录具体数字
 
 ## v0.6
 

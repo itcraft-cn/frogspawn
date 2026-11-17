@@ -12,8 +12,7 @@
 | 完整 MR-JAR 构建 | JDK8（编译 base）+ JDK24+（编译 `versions/9` / `versions/24`） |
 | 构建工具 | 首选 `mvnd`，次选 `mvn` |
 
-JDK24+ 运行时会自动加载 `META-INF/versions/24`，原生内存由
-`java.lang.foreign.MemorySegment` 管理，不再加载 `sun.misc.Unsafe`。
+JDK24+ 运行时会自动加载 `META-INF/versions/24`，原生内存由 `java.lang.foreign.MemorySegment` 管理，不再加载 `sun.misc.Unsafe`。
 
 ## 2. 依赖与构建
 
@@ -164,8 +163,7 @@ newFixedOffHeapPool(creator, capacity, objectSize)
 
 - `getAddress()` / `setAddress(long)`：池分配地址后回填。
 - `getObjectSize()`：对象主体字节数。
-- `getArrayFieldCount()` / `getArrayLength(int)` / `getArrayAddress(int)` /
-  `setArrayAddress(int, long)`：数组字段管理。
+- `getArrayFieldCount()` / `getArrayLength(int)` / `getArrayAddress(int)` /`setArrayAddress(int, long)`：数组字段管理。
 - `getArrayElementSize(int)`：数组元素宽度，默认 8 字节；`int[]` 返回 4，`byte[]` 返回 1。
 - `writeToMemory()` / `readFromMemory()`：对象与原生内存之间的读写。
 - `hasDataToWrite()`：可返回 `false` 跳过写入。
@@ -180,8 +178,7 @@ newFixedOffHeapPool(creator, capacity, objectSize)
 - `address()` / `address(long)`：池分配的固定地址。
 - `reset()`：只重置业务字段，**不要**清空 `index` / `address`。
 
-`FixedOffHeapPool` 预创建全部对象，并持有整块原生内存；对象地址在池生命周期内固定。
-池实现 `AutoCloseable`，不再使用时调用 `close()`：
+`FixedOffHeapPool` 预创建全部对象，并持有整块原生内存；对象地址在池生命周期内固定。池实现 `AutoCloseable`，不再使用时调用 `close()`：
 
 ```java
 ObjectsMemoryPool<MyFixedPojo> pool = ObjectsMemoryPoolFactory.newPool(
@@ -199,8 +196,7 @@ try {
 
 `FixedOffHeapObject.buffer()` 默认抛 `UnsupportedOperationException`，实现类可按需覆盖：
 
-- **JDK24+**：使用 `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`，底层是
-  `MemorySegment.asByteBuffer()`，可直接用于 `FileChannel` / `SocketChannel`：
+- **JDK24+**：使用 `PlatformMemory.asByteBuffer(address(), OBJECT_SIZE)`，底层是 `MemorySegment.asByteBuffer()`，可直接用于 `FileChannel` / `SocketChannel`：
 
   ```java
   @Override
@@ -209,9 +205,7 @@ try {
   }
   ```
 
-- **JDK8-23**：没有公开 API 将任意地址包装为 `ByteBuffer`；建议实现类持有
-  `ByteBuffer.allocateDirect(OBJECT_SIZE)`，`buffer()` 直接返回，并把 `address()`
-  与该 buffer 关联。
+- **JDK8-23**：没有公开 API 将任意地址包装为 `ByteBuffer`；建议实现类持有 `ByteBuffer.allocateDirect(OBJECT_SIZE)`，`buffer()` 直接返回，并把 `address()` 与该 buffer 关联。
 
 注意：
 
@@ -231,8 +225,7 @@ try {
 
 `FetchFailStrategy`：`NOT_AVAILABLE` / `NULLABLE` / `CALL_CREATOR`。
 
-策略目前只作用于 Heap 池；OffHeap 与 FixedOffHeap 在容量不足时按各自语义新建或抛出
-`IllegalStateException`。
+策略目前只作用于 Heap 池；OffHeap 与 FixedOffHeap 在容量不足时按各自语义新建或抛出 `IllegalStateException`。
 
 ## 8. 系统属性
 
@@ -283,8 +276,7 @@ JMH（4 threads、10×100ms warmup、5×20ms measurement、fork 3）：
 - 小对象、短生命周期、吞吐优先：**Heap**。
 - 大对象、大容量、GC 敏感、尾延迟敏感：**OffHeap**。
 - 固定大小记录、需要稳定地址、零分配、native/网络/序列化互操作：**FixedOffHeap**。
-- FixedOffHeap 的微基准吞吐低于 Heap/OffHeap，这是固定地址与正确性校验的成本；
-  它的价值在 GC 压力、固定地址与零分配场景。
+- FixedOffHeap 的微基准吞吐低于 Heap/OffHeap，这是固定地址与正确性校验的成本；它的价值在 GC 压力、固定地址与零分配场景。
 
 ### Heap 模式的最大优势：平滑 GC 抖动
 
@@ -296,8 +288,7 @@ Heap 模式最大的优势不是纯 `fetch/release` 吞吐，而是**平滑 GC �
 
 在固定线程池、固定处理链路的低延迟系统中，这种“方差优化”通常比“均值优化”更有价值。
 
-具体生产数据因环境、负载与 GC 配置而异；frogspawn 的贡献应通过 GC 次数/停顿、
-分配速率、以及 p99.9 与 GC pause 的相关性来验证。
+具体生产数据因环境、负载与 GC 配置而异；frogspawn 的贡献应通过 GC 次数/停顿、分配速率、以及 p99.9 与 GC pause 的相关性来验证。
 
 更多数据见 [JMH 报告](doc/review/jmh-20261117-001-heap-offheap.md)。
 
@@ -305,13 +296,11 @@ Heap 模式最大的优势不是纯 `fetch/release` 吞吐，而是**平滑 GC �
 
 ### 11.1 FixedOffHeapPool exhausted
 
-固定池容量耗尽时抛 `IllegalStateException`。请提高 `PoolConfig.fixedOffHeap(capacity, ...)`
-的容量，或确保每个 `fetch()` 都有对应的 `release()`。
+固定池容量耗尽时抛 `IllegalStateException`。请提高 `PoolConfig.fixedOffHeap(capacity, ...)` 的容量，或确保每个 `fetch()` 都有对应的 `release()`。
 
 ### 11.2 Object does not belong to this pool
 
-`release` 只接受本池创建的对象，且不能重复释放。检查是否把对象还给了错误的池，
-或对同一对象调用了两次 `release`。
+`release` 只接受本池创建的对象，且不能重复释放。检查是否把对象还给了错误的池，或对同一对象调用了两次 `release`。
 
 ### 11.3 对象取到后是脏数据
 
@@ -327,8 +316,7 @@ JDK24+ 应加载 `META-INF/versions/24`。检查：
 java -verbose:class -cp frogspawn.jar YourMain 2>&1 | grep MemoryAccessImpl
 ```
 
-应看到 `MemoryAccessImpl$Allocation`（MemorySegment 实现）。如果加载的是 base 实现，
-确认 jar 的 manifest 含 `Multi-Release: true`。
+应看到 `MemoryAccessImpl$Allocation`（MemorySegment 实现）。如果加载的是 base 实现，确认 jar 的 manifest 含 `Multi-Release: true`。
 
 ## 12. 相关文档
 

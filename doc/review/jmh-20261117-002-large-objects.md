@@ -35,8 +35,7 @@ JDK25 运行时使用 `META-INF/versions/24` 的 `MemorySegment` 实现。
 - Measurement：5 iterations × 20 ms
 - Threads：4
 - Fork：3
-- `reset()` 不计入 1MB payload 清零；每次操作只访问 payload 首字。
-  因此本基准衡量的是**池分配/GC 与地址管理**，不是内存带宽。
+- `reset()` 不计入 1MB payload 清零；每次操作只访问 payload 首字。因此本基准衡量的是**池分配/GC 与地址管理**，不是内存带宽。
 
 ## 3. 结果
 
@@ -55,8 +54,7 @@ JDK25 运行时使用 `META-INF/versions/24` 的 `MemorySegment` 实现。
 | OffHeap Pool | ≈ 17,200x | ≈ 21,700x |
 | FixedOffHeap Pool | ≈ 7,500x | ≈ 9,400x |
 
-> 该倍数主要反映“复用 1MB 内存”与“每次 `new` 分配/清零 1MB + GC”的差异，
-> 不是纯 `fetch/release` 开销的倍数。
+> 该倍数主要反映“复用 1MB 内存”与“每次 `new` 分配/清零 1MB + GC”的差异，不是纯 `fetch/release` 开销的倍数。
 
 ## 4. GC 观察（1 fork × 3 iterations，方向性）
 
@@ -71,21 +69,16 @@ JDK25 运行时使用 `META-INF/versions/24` 的 `MemorySegment` 实现。
 
 ## 5. 结论
 
-1. **超大对象场景是池化的主场**
-   1MB 对象的 `new` 吞吐只有约 0.03 ops/us（约 3 万 ops/s），而池化 fetch/release
-   达到数百 ops/us。差距来自避免每次 1MB 分配/清零与 GC。
+1. **超大对象场景是池化的主场**1MB 对象的 `new` 吞吐只有约 0.03 ops/us（约 3 万 ops/s），而池化 fetch/release 达到数百 ops/us。差距来自避免每次 1MB 分配/清零与 GC。
 
 2. **JDK25 的 MemorySegment OffHeap 表现最好**
    - OffHeap: 600.378 → 673.156 ops/us（+12.1%）
    - FixedOffHeap: 263.150 → 291.873 ops/us（+10.9%）
    - Heap 的 JDK25 数据误差较大（±67），与 JDK8 的差异不具结论性。
 
-3. **FixedOffHeap 吞吐低于 Heap/OffHeap**
-   当前 FixedOffHeap 有归属校验（`AtomicIntegerArray` CAS）和共享栈锁，这是正确性成本；
-   它仍比 `new` 快约 3 个数量级。其价值在固定地址、预创建零分配、大对象与 GC 敏感场景。
+3. **FixedOffHeap 吞吐低于 Heap/OffHeap**当前 FixedOffHeap 有归属校验（`AtomicIntegerArray` CAS）和共享栈锁，这是正确性成本；它仍比 `new` 快约 3 个数量级。其价值在固定地址、预创建零分配、大对象与 GC 敏感场景。
 
-4. **Heap 仍是小对象默认首选**
-   本报告只说明 1MB 大对象下池化相对 `new` 的巨大优势；小对象场景仍应优先 Heap。
+4. **Heap 仍是小对象默认首选**本报告只说明 1MB 大对象下池化相对 `new` 的巨大优势；小对象场景仍应优先 Heap。
 
 ## 6. 原始数据
 

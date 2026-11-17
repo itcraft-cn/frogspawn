@@ -81,11 +81,9 @@
 
 ### 2.4 构建可靠性
 
-1. **P2：`JAVA_HOME8` 缺失时的回退不够显式**
-   `base-jdk-fallback` 会回退到 Maven 自身 JDK。若 Maven 运行在 JDK9+，base 层会因找不到 `sun.misc.Contended` 而失败。建议 CI 强制设置 `JAVA_HOME8`，或增加 enforcer 规则。
+1. **P2：`JAVA_HOME8` 缺失时的回退不够显式**`base-jdk-fallback` 会回退到 Maven 自身 JDK。若 Maven 运行在 JDK9+，base 层会因找不到 `sun.misc.Contended` 而失败。建议 CI 强制设置 `JAVA_HOME8`，或增加 enforcer 规则。
 
-2. **P2：Javadoc 依赖完整 JDK8**
-   `javadocExecutable` 指向 `${mr.base.jdk.home}/bin/javadoc`，若 `JAVA_HOME8` 指向 JRE（无 javadoc），`package` 会失败。
+2. **P2：Javadoc 依赖完整 JDK8**`javadocExecutable` 指向 `${mr.base.jdk.home}/bin/javadoc`，若 `JAVA_HOME8` 指向 JRE（无 javadoc），`package` 会失败。
 
 ## 3. 本次已修复
 
@@ -126,8 +124,7 @@
 
 ### P2（建议改进）
 
-1. **JDK9-23 仍依赖 `sun.misc.Unsafe`**
-   JDK24+ 已完全切换到 `MemorySegment`，无 Unsafe 告警；JDK9-23 受限于公开 API，仍使用 `RawMemoryUtil`。这是预期行为。
+1. **JDK9-23 仍依赖 `sun.misc.Unsafe`**JDK24+ 已完全切换到 `MemorySegment`，无 Unsafe 告警；JDK9-23 受限于公开 API，仍使用 `RawMemoryUtil`。这是预期行为。
 2. **`JAVA_HOME8` 缺失时回退不够显式**（见 2.4）。
 3. **Javadoc 依赖完整 JDK8**（见 2.4）。
 4. `OffHeapMemInfo` 与 `FieldType` 在删除 `ClassUtil` 后已无生产引用，属于潜在死代码；因是 public 类型，暂不删除。
@@ -185,5 +182,4 @@ mvn -f frogspawn-test/pom.xml test   # JDK27: 18/18
 
 ---
 
-**审查人**：AI Code Review
-**报告版本**：1.2.0
+**审查人**：AI Code Review**报告版本**：1.2.0

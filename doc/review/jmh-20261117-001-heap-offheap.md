@@ -70,10 +70,8 @@ JDK25 运行时确认加载：
    - 说明 JDK25 的 `versions/24` MemorySegment 实现没有引入性能退化，反而受益于 JIT/运行时改进。
 
 2. **FixedOffHeapPool 在 JDK25 略低（约 -1.5%）**
-   - 差距接近测量误差范围，且 FixedOffHeap 使用不同的对象类型（`SimpleFixedObject`），
-     不能与 Heap/OffHeap 的对象直接等价比较。
-   - 当前 FixedOffHeap 使用 `AtomicIntegerArray` 做归属/重复释放校验，并用手工锁保护共享栈，
-     这是为修复 P1 生命周期问题付出的正确性成本。
+   - 差距接近测量误差范围，且 FixedOffHeap 使用不同的对象类型（`SimpleFixedObject`），不能与 Heap/OffHeap 的对象直接等价比较。
+   - 当前 FixedOffHeap 使用 `AtomicIntegerArray` 做归属/重复释放校验，并用手工锁保护共享栈，这是为修复 P1 生命周期问题付出的正确性成本。
    - 与历史记录（约 277-299 ops/us）基本一致，未出现明显回退。
 
 3. **Heap / OffHeap 均显著高于 `new`**

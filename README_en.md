@@ -77,10 +77,7 @@ PoolConfig.offHeap(1024);
 PoolConfig.fixedOffHeap(10000, 64);
 ```
 
-`OFF_HEAP` requires the object to implement `PrimitiveStructure`;
-`FIXED_OFF_HEAP` requires `FixedOffHeapObject`. The factory validates the creator return type
-and throws `IllegalArgumentException` on mismatch. Existing `newPool` / `newOffHeapPool` /
-`newFixedOffHeapPool` methods remain available for backward compatibility.
+`OFF_HEAP` requires the object to implement `PrimitiveStructure`; `FIXED_OFF_HEAP` requires `FixedOffHeapObject`. The factory validates the creator return type and throws `IllegalArgumentException` on mismatch. Existing `newPool` / `newOffHeapPool` / `newFixedOffHeapPool` methods remain available for backward compatibility.
 
 ## Three Available Modes
 
@@ -132,19 +129,15 @@ The last option is the default.
 | JDK24+ overlay | `src/main/java24` | 68 (Java 24) | JDK24+ |
 
 - `src/main/java`: only JDK-independent code.
-- `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe`, `sun.misc.Contended`
-  and `RawMemoryUtil`.
-- `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended` and a
-  `VarHandle`-based `MemoryAccessImpl`.
+- `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe`, `sun.misc.Contended` and `RawMemoryUtil`.
+- `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended` and a `VarHandle`-based `MemoryAccessImpl`.
 - `src/main/java24`: JDK24+ replacements using `java.lang.foreign.MemorySegment`; no `sun.misc.*`.
 
 Platform access goes through `cn.itcraft.frogspawn.platform.MemoryAccess`:
 - JDK8 uses `sun.misc.Unsafe`.
 - JDK9-23 uses `VarHandle` for array access and `RawMemoryUtil` for raw memory.
-- JDK24+ uses `MemorySegment` for allocation/free, primitive access and `copyFrom`, with
-  `VarHandle` for array access. No `sun.misc.Unsafe` is loaded by the JDK24+ implementation.
-- `FixedOffHeapObject.buffer()` offers an optional zero-copy `ByteBuffer` view: JDK24+ creates
-  it via `MemorySegment.asByteBuffer()`; JDK8-23 implementations can hold a direct `ByteBuffer`.
+- JDK24+ uses `MemorySegment` for allocation/free, primitive access and `copyFrom`, with `VarHandle` for array access. No `sun.misc.Unsafe` is loaded by the JDK24+ implementation.
+- `FixedOffHeapObject.buffer()` offers an optional zero-copy `ByteBuffer` view: JDK24+ creates it via `MemorySegment.asByteBuffer()`; JDK8-23 implementations can hold a direct `ByteBuffer`.
 
 Build a full MR-JAR with both JDK8 and JDK24+:
 
@@ -154,16 +147,13 @@ export JAVA_HOME=/path/to/jdk24+
 mvn -f frogspawn/pom.xml clean package
 ```
 
-`-Dmr.base.jdk.home=/path/to/jdk8` overrides `JAVA_HOME8`. Building with JDK8 alone
-still produces a valid MR-JAR, but without the `META-INF/versions/9` and
-`META-INF/versions/24` overlays.
+`-Dmr.base.jdk.home=/path/to/jdk8` overrides `JAVA_HOME8`. Building with JDK8 alone still produces a valid MR-JAR, but without the `META-INF/versions/9` and `META-INF/versions/24` overlays.
 
 ## False Sharing Considerations
 
 - On JDK8 the base class uses `sun.misc.Contended`.
 - On JDK9+ the versioned class uses `jdk.internal.vm.annotation.Contended`.
-- Additional documentation states that the `@Contended` annotation requires JVM parameter
-  `-XX:-RestrictContended` to be enabled for user classes.
+- Additional documentation states that the `@Contended` annotation requires JVM parameter `-XX:-RestrictContended` to be enabled for user classes.
 
 ## Documentation
 
@@ -174,9 +164,7 @@ still produces a valid MR-JAR, but without the `META-INF/versions/9` and
 
 ### JMH Throughput Comparison (4 scenarios)
 
-Environment: Intel Core Ultra 9 285H / 16 vCPU, 4GB heap, 4 threads, 10×100ms warmup,
-5×20ms measurement, fork 3. JDK8 uses the base implementation; JDK25 uses the
-`versions/24` `MemorySegment` implementation.
+Environment: Intel Core Ultra 9 285H / 16 vCPU, 4GB heap, 4 threads, 10×100ms warmup, 5×20ms measurement, fork 3. JDK8 uses the base implementation; JDK25 uses the `versions/24` `MemorySegment` implementation.
 
 | Scenario | JDK8 (ops/us) | JDK25 (ops/us) | JDK25 / JDK8 |
 |----------|--------------:|---------------:|-------------:|
@@ -187,12 +175,9 @@ Environment: Intel Core Ultra 9 285H / 16 vCPU, 4GB heap, 4 threads, 10×100ms w
 
 Takeaways:
 
-- With small objects and no GC pressure, **Heap is fastest**; on JDK25 OffHeap is close
-  to Heap (about 97%).
-- FixedOffHeap is slower in this microbenchmark; its value is fixed addresses,
-  pre-created zero-allocation objects, large objects and GC-sensitive workloads.
-- The real home of OffHeap/FixedOffHeap is GC pressure and off-heap memory, not pure
-  `fetch`/`release` throughput for 8-byte objects.
+- With small objects and no GC pressure, **Heap is fastest**; on JDK25 OffHeap is close to Heap (about 97%).
+- FixedOffHeap is slower in this microbenchmark; its value is fixed addresses, pre-created zero-allocation objects, large objects and GC-sensitive workloads.
+- The real home of OffHeap/FixedOffHeap is GC pressure and off-heap memory, not pure `fetch`/`release` throughput for 8-byte objects.
 - See the [large-object (1MB) JMH report](doc/review/jmh-20261117-002-large-objects.md).
 
 ### GC Pressure Test (historical)
@@ -217,8 +202,7 @@ Test environment: OpenJDK 25, 4GB heap, warmup 100k iterations, test 1M iteratio
 
 #### Conclusion
 
-- **FixedOffHeapPool**: Best performance - fastest execution, zero GC, efficient native reset
-  via `MemoryAccess.setMemory` (`UNSAFE.setMemory` on JDK8-23, `MemorySegment.fill` on JDK24+)
+- **FixedOffHeapPool**: Best performance - fastest execution, zero GC, efficient native reset via `MemoryAccess.setMemory` (`UNSAFE.setMemory` on JDK8-23, `MemorySegment.fill` on JDK24+)
 - **HeapPool**: Large object reset (array clearing) overhead > JVM new object zero-initialization
 - **new**: Medium performance, may trigger GC under pressure
 
@@ -226,31 +210,22 @@ Test environment: OpenJDK 25, 4GB heap, warmup 100k iterations, test 1M iteratio
 
 ### Heap Mode's Biggest Advantage: Smoothing GC-Induced Latency Jitter
 
-The biggest advantage of Heap mode is not raw `fetch/release` throughput, but **smoothing
-GC-induced latency jitter**:
+The biggest advantage of Heap mode is not raw `fetch/release` throughput, but **smoothing GC-induced latency jitter**:
 
 - pre-allocation + reuse reduce the allocation rate;
 - thread-local caches reduce shared-pool contention;
 - fewer GC cycles and shorter pauses make p95 / p99.9 more stable.
 
-In a low-latency system with a fixed thread pool and a fixed processing pipeline, this
-"variance optimization" is often more valuable than "mean optimization".
+In a low-latency system with a fixed thread pool and a fixed processing pipeline, this "variance optimization" is often more valuable than "mean optimization".
 
-Production figures vary with environment, workload and GC configuration; attribute
-frogspawn's contribution via GC count/pause, allocation rate, and the correlation between
-p99.9 and GC pauses.
+Production figures vary with environment, workload and GC configuration; attribute frogspawn's contribution via GC count/pause, allocation rate, and the correlation between p99.9 and GC pauses.
 
 ## Selection Notes
 
-- **Heap is the default**: use it for small objects to smooth GC jitter; large objects can also
-  benefit from reuse and reduced allocation/zeroing cost.
-- **Small objects**: pooling mainly reduces allocation rate, GC frequency and tail latency, not
-  average throughput; in microbenchmarks `new` is often faster.
-- **Large objects**: heap pooling is not unconditionally better. Retaining large objects on the
-  heap increases the live set/old-gen pressure; if `reset()` must clear a large block, the gain
-  shrinks. For GC-sensitive large objects, prefer OffHeap / FixedOffHeap.
-- **Baseline**: compare against `new` and GC metrics (count/pause/p99.9) first, then against
-  generic pools such as Commons Pool 2.x.
+- **Heap is the default**: use it for small objects to smooth GC jitter; large objects can also benefit from reuse and reduced allocation/zeroing cost.
+- **Small objects**: pooling mainly reduces allocation rate, GC frequency and tail latency, not average throughput; in microbenchmarks `new` is often faster.
+- **Large objects**: heap pooling is not unconditionally better. Retaining large objects on the heap increases the live set/old-gen pressure; if `reset()` must clear a large block, the gain shrinks. For GC-sensitive large objects, prefer OffHeap / FixedOffHeap.
+- **Baseline**: compare against `new` and GC metrics (count/pause/p99.9) first, then against generic pools such as Commons Pool 2.x.
 - **OffHeap / FixedOffHeap are specialized**:
   - Dynamic OffHeap: variable-size/large data, GC offload, native interop;
   - FixedOffHeap: fixed-size records, stable addresses, zero allocation, zero-copy disk/network IO.
