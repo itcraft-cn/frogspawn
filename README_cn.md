@@ -107,15 +107,20 @@ try{
 |----|---------|-----------|----------|
 | 公共 + JDK8 | `src/main/java` + `src/main/java8` | 52 (Java 8) | JDK8+ |
 | JDK9+ 覆盖层 | `src/main/java9` | 53 (Java 9) | JDK9+ |
+| JDK24+ 覆盖层 | `src/main/java24` | 68 (Java 24) | JDK24+ |
 
 - `src/main/java`：只放与 JDK 版本无关的代码。
 - `src/main/java8`：JDK8 专有实现，包括 `sun.misc.Unsafe`、`sun.misc.Contended`、`RawMemoryUtil`。
 - `src/main/java9`：JDK9+ 覆盖实现，包括 `jdk.internal.vm.annotation.Contended` 以及基于
   `VarHandle` 的 `MemoryAccessImpl`。
+- `src/main/java24`：JDK24+ 覆盖实现，使用 `java.lang.foreign.MemorySegment`，完全不使用
+  `sun.misc.*`。
 
-平台相关访问统一走 `cn.itcraft.frogspawn.platform.MemoryAccess`。JDK9-21 没有公开的原始地址
-分配 API，原生内存分配仍复用 JDK8 的 `RawMemoryUtil`；后续可增加 `java22` overlay 切换到
-`java.lang.foreign`。
+平台相关访问统一走 `cn.itcraft.frogspawn.platform.MemoryAccess`：
+- JDK8 使用 `sun.misc.Unsafe`。
+- JDK9-23 使用 `VarHandle` 访问数组，原生内存使用 `RawMemoryUtil`。
+- JDK24+ 使用 `MemorySegment` 完成分配/释放、基本类型访问与 `copyFrom`，数组访问使用
+  `VarHandle`，JDK24+ 实现不再加载 `sun.misc.Unsafe`。
 
 同时使用 JDK8 与 JDK9+ 构建完整 MR-JAR：
 

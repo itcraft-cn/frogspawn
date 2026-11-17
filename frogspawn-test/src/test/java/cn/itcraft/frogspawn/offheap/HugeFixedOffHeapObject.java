@@ -1,6 +1,7 @@
 package cn.itcraft.frogspawn.offheap;
 
-import sun.misc.Unsafe;
+import cn.itcraft.frogspawn.platform.MemoryAccess;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
 
 /**
  * 大型复杂对象 - 固定非堆内存版本
@@ -20,7 +21,7 @@ import sun.misc.Unsafe;
  */
 public class HugeFixedOffHeapObject implements FixedOffHeapObject {
     
-    private static final Unsafe UNSAFE = UnsafeUtil.getTheUnsafe();
+    private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
     public static final int OBJECT_SIZE = 2048;
     
     private static final int LONG_ARRAY_OFFSET = 160;
@@ -53,7 +54,7 @@ public class HugeFixedOffHeapObject implements FixedOffHeapObject {
     @Override
     public void reset() {
         if (address != 0) {
-            UNSAFE.setMemory(address, OBJECT_SIZE, (byte) 0);
+            MEMORY.setMemory(address, OBJECT_SIZE, (byte) 0);
         }
     }
 
@@ -76,35 +77,35 @@ public class HugeFixedOffHeapObject implements FixedOffHeapObject {
             return;
         }
         
-        UNSAFE.putLong(address, l1);
-        UNSAFE.putLong(address + 8, l2);
-        UNSAFE.putInt(address + 80, i1);
-        UNSAFE.putInt(address + 84, i2);
-        UNSAFE.putDouble(address + 120, d1);
+        MEMORY.putLong(address, l1);
+        MEMORY.putLong(address + 8, l2);
+        MEMORY.putInt(address + 80, i1);
+        MEMORY.putInt(address + 84, i2);
+        MEMORY.putDouble(address + 120, d1);
         
-        UNSAFE.putLong(address + LONG_ARRAY_OFFSET, l1);
-        UNSAFE.putLong(address + LONG_ARRAY_OFFSET + 8, l2);
-        UNSAFE.putInt(address + INT_ARRAY_OFFSET, i1);
-        UNSAFE.putInt(address + INT_ARRAY_OFFSET + 4, i2);
+        MEMORY.putLong(address + LONG_ARRAY_OFFSET, l1);
+        MEMORY.putLong(address + LONG_ARRAY_OFFSET + 8, l2);
+        MEMORY.putInt(address + INT_ARRAY_OFFSET, i1);
+        MEMORY.putInt(address + INT_ARRAY_OFFSET + 4, i2);
     }
 
     public long getField1() {
-        return address != 0 ? UNSAFE.getLong(address) : 0;
+        return address != 0 ? MEMORY.getLong(address) : 0;
     }
 
     public long getField2() {
-        return address != 0 ? UNSAFE.getLong(address + 8) : 0;
+        return address != 0 ? MEMORY.getLong(address + 8) : 0;
     }
 
     public int getField11() {
-        return address != 0 ? UNSAFE.getInt(address + 80) : 0;
+        return address != 0 ? MEMORY.getInt(address + 80) : 0;
     }
 
     public int getField12() {
-        return address != 0 ? UNSAFE.getInt(address + 84) : 0;
+        return address != 0 ? MEMORY.getInt(address + 84) : 0;
     }
 
     public double getField21() {
-        return address != 0 ? UNSAFE.getDouble(address + 120) : 0.0;
+        return address != 0 ? MEMORY.getDouble(address + 120) : 0.0;
     }
 }

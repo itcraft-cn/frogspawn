@@ -1,6 +1,7 @@
 package cn.itcraft.frogspawn.offheap;
 
-import sun.misc.Unsafe;
+import cn.itcraft.frogspawn.platform.MemoryAccess;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
 
 /**
  * 简单固定非堆对象实现
@@ -11,7 +12,7 @@ import sun.misc.Unsafe;
  */
 class SimpleFixedObject implements FixedOffHeapObject {
     
-    private static final Unsafe UNSAFE = UnsafeUtil.getTheUnsafe();
+    private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
     
     private int index;
     private long address;
@@ -56,10 +57,10 @@ class SimpleFixedObject implements FixedOffHeapObject {
     
     // 业务方法示例
     public void setValue(long value) {
-        UNSAFE.putLong(address, value);
+        MEMORY.putLong(address, value);
     }
     
     public long getValue() {
-        return UNSAFE.getLong(address);
+        return MEMORY.getLong(address);
     }
 }

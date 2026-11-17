@@ -19,6 +19,7 @@ frogspawn/                   # 主库模块
 │   └── data/                # 数据封装类
 ├── src/main/java8/          # JDK8 专有实现（Unsafe / Contended / RawMemoryUtil）
 ├── src/main/java9/          # JDK9+ 覆盖实现（VarHandle / jdk.internal Contended）
+├── src/main/java24/         # JDK24+ 覆盖实现（MemorySegment / VarHandle）
 frogspawn-test/              # 测试模块
 ├── src/test/java/           # 单元测试和基准测试
 ```
@@ -32,6 +33,7 @@ frogspawn-test/              # 测试模块
 | `src/main/java` | 与 JDK 版本无关的代码 | JDK8 | 52 |
 | `src/main/java8` | 直接依赖 `sun.misc.*` 的实现 | JDK8 | 52 |
 | `src/main/java9` | JDK9+ 覆盖实现 | JDK9+ | 53 |
+| `src/main/java24` | JDK24+ 覆盖实现（MemorySegment，无 Unsafe） | JDK24+ | 68 |
 
 约束：
 
@@ -41,23 +43,25 @@ frogspawn-test/              # 测试模块
 4. 新增 JDK 专有实现时，优先抽取平台无关接口，避免复制整段业务逻辑。
 5. 平台相关访问统一通过 `cn.itcraft.frogspawn.platform.MemoryAccess` SPI；
    `src/main/java9` 不得直接 `import sun.misc.*`，原生内存分配复用 `RawMemoryUtil`。
+6. JDK24+ 的 `src/main/java24` 必须完全不使用 `sun.misc.*`，原生内存使用
+   `java.lang.foreign.MemorySegment`，数组访问使用 `VarHandle`。
 
 ## MR-JAR 构建
 
 ```bash
-# 完整 MR-JAR：JDK8 编译 base，JDK9+ 编译覆盖层
+# 完整 MR-JAR：JDK8 编译 base，JDK9+ 编译 versions/9，JDK24+ 编译 versions/24
 export JAVA_HOME8=/path/to/jdk8
-export JAVA_HOME=/path/to/jdk9+
+export JAVA_HOME=/path/to/jdk24+
 mvn -f frogspawn/pom.xml clean package
 
 # 指定 JDK8 路径（覆盖 JAVA_HOME8）
 mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 ```
 
-- 只用 JDK8 构建时 `mr-java9` profile 不激活，产物仍是合法 MR-JAR，但不含
-  `META-INF/versions/9` 覆盖类。
-- 发布前应使用 JDK9+ 执行一次完整构建，并校验 jar 内存在
-  `META-INF/versions/9` 目录与 `Multi-Release: true` 清单项。
+- 只用 JDK8 构建时 `mr-java9` / `mr-java24` profile 不激活，产物仍是合法 MR-JAR，
+  但不含 `META-INF/versions/9` / `versions/24` 覆盖类。
+- 发布前应使用 JDK24+ 执行一次完整构建，并校验 jar 内存在
+  `META-INF/versions/9`、`META-INF/versions/24` 目录与 `Multi-Release: true` 清单项。
 
 ## 性能测试结果
 

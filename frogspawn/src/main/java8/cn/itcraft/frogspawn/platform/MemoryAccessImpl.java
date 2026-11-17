@@ -23,12 +23,12 @@ import sun.misc.Unsafe;
  * JDK8 平台内存访问实现
  * JDK8 platform memory access implementation
  *
- * 全部通过 sun.misc.Unsafe 完成，数组访问使用原始偏移量。
- * All operations use sun.misc.Unsafe; array access uses raw offsets.
+ * 数组访问使用 sun.misc.Unsafe 原始偏移量；原生内存复用 AbstractRawMemoryAccess。
+ * Array access uses sun.misc.Unsafe raw offsets; raw memory reuses AbstractRawMemoryAccess.
  *
  * @author Helly Guo
  */
-public final class MemoryAccessImpl implements MemoryAccess {
+public final class MemoryAccessImpl extends AbstractRawMemoryAccess {
 
     private static final Unsafe UNSAFE = UnsafeUtil.getUnsafe();
     private static final int POINTER_SIZE = UNSAFE.arrayIndexScale(Object[].class);
@@ -38,16 +38,6 @@ public final class MemoryAccessImpl implements MemoryAccess {
     @Override
     public int pointerSize() {
         return POINTER_SIZE;
-    }
-
-    @Override
-    public long allocateMemory(long bytes) {
-        return RawMemoryUtil.allocate(bytes);
-    }
-
-    @Override
-    public void freeMemory(long address) {
-        RawMemoryUtil.free(address);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package cn.itcraft.frogspawn.offheap;
 
-import sun.misc.Unsafe;
+import cn.itcraft.frogspawn.platform.MemoryAccess;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
 
 /**
  * 大型复杂对象 - 原始非堆内存版本（PrimitiveStructure）
@@ -11,7 +12,7 @@ import sun.misc.Unsafe;
  */
 public class HugeOffHeapObject implements PrimitiveStructure {
     
-    private static final Unsafe UNSAFE = UnsafeUtil.getTheUnsafe();
+    private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
     
     private static final int LONG_ARRAY_SIZE = 100;
     private static final int INT_ARRAY_SIZE = 100;
@@ -109,33 +110,33 @@ public class HugeOffHeapObject implements PrimitiveStructure {
             return;
         }
         
-        UNSAFE.putLong(address, field1);
-        UNSAFE.putLong(address + 8, field2);
-        UNSAFE.putLong(address + 16, field3);
-        UNSAFE.putLong(address + 24, field4);
-        UNSAFE.putLong(address + 32, field5);
-        UNSAFE.putLong(address + 40, field6);
-        UNSAFE.putLong(address + 48, field7);
-        UNSAFE.putLong(address + 56, field8);
-        UNSAFE.putLong(address + 64, field9);
-        UNSAFE.putLong(address + 72, field10);
+        MEMORY.putLong(address, field1);
+        MEMORY.putLong(address + 8, field2);
+        MEMORY.putLong(address + 16, field3);
+        MEMORY.putLong(address + 24, field4);
+        MEMORY.putLong(address + 32, field5);
+        MEMORY.putLong(address + 40, field6);
+        MEMORY.putLong(address + 48, field7);
+        MEMORY.putLong(address + 56, field8);
+        MEMORY.putLong(address + 64, field9);
+        MEMORY.putLong(address + 72, field10);
         
-        UNSAFE.putInt(address + 80, field11);
-        UNSAFE.putInt(address + 84, field12);
-        UNSAFE.putInt(address + 88, field13);
-        UNSAFE.putInt(address + 92, field14);
-        UNSAFE.putInt(address + 96, field15);
-        UNSAFE.putInt(address + 100, field16);
-        UNSAFE.putInt(address + 104, field17);
-        UNSAFE.putInt(address + 108, field18);
-        UNSAFE.putInt(address + 112, field19);
-        UNSAFE.putInt(address + 116, field20);
+        MEMORY.putInt(address + 80, field11);
+        MEMORY.putInt(address + 84, field12);
+        MEMORY.putInt(address + 88, field13);
+        MEMORY.putInt(address + 92, field14);
+        MEMORY.putInt(address + 96, field15);
+        MEMORY.putInt(address + 100, field16);
+        MEMORY.putInt(address + 104, field17);
+        MEMORY.putInt(address + 108, field18);
+        MEMORY.putInt(address + 112, field19);
+        MEMORY.putInt(address + 116, field20);
         
-        UNSAFE.putDouble(address + 120, field21);
-        UNSAFE.putDouble(address + 128, field22);
-        UNSAFE.putDouble(address + 136, field23);
-        UNSAFE.putDouble(address + 144, field24);
-        UNSAFE.putDouble(address + 152, field25);
+        MEMORY.putDouble(address + 120, field21);
+        MEMORY.putDouble(address + 128, field22);
+        MEMORY.putDouble(address + 136, field23);
+        MEMORY.putDouble(address + 144, field24);
+        MEMORY.putDouble(address + 152, field25);
     }
 
     @Override
@@ -144,33 +145,33 @@ public class HugeOffHeapObject implements PrimitiveStructure {
             return;
         }
         
-        field1 = UNSAFE.getLong(address);
-        field2 = UNSAFE.getLong(address + 8);
-        field3 = UNSAFE.getLong(address + 16);
-        field4 = UNSAFE.getLong(address + 24);
-        field5 = UNSAFE.getLong(address + 32);
-        field6 = UNSAFE.getLong(address + 40);
-        field7 = UNSAFE.getLong(address + 48);
-        field8 = UNSAFE.getLong(address + 56);
-        field9 = UNSAFE.getLong(address + 64);
-        field10 = UNSAFE.getLong(address + 72);
+        field1 = MEMORY.getLong(address);
+        field2 = MEMORY.getLong(address + 8);
+        field3 = MEMORY.getLong(address + 16);
+        field4 = MEMORY.getLong(address + 24);
+        field5 = MEMORY.getLong(address + 32);
+        field6 = MEMORY.getLong(address + 40);
+        field7 = MEMORY.getLong(address + 48);
+        field8 = MEMORY.getLong(address + 56);
+        field9 = MEMORY.getLong(address + 64);
+        field10 = MEMORY.getLong(address + 72);
         
-        field11 = UNSAFE.getInt(address + 80);
-        field12 = UNSAFE.getInt(address + 84);
-        field13 = UNSAFE.getInt(address + 88);
-        field14 = UNSAFE.getInt(address + 92);
-        field15 = UNSAFE.getInt(address + 96);
-        field16 = UNSAFE.getInt(address + 100);
-        field17 = UNSAFE.getInt(address + 104);
-        field18 = UNSAFE.getInt(address + 108);
-        field19 = UNSAFE.getInt(address + 112);
-        field20 = UNSAFE.getInt(address + 116);
+        field11 = MEMORY.getInt(address + 80);
+        field12 = MEMORY.getInt(address + 84);
+        field13 = MEMORY.getInt(address + 88);
+        field14 = MEMORY.getInt(address + 92);
+        field15 = MEMORY.getInt(address + 96);
+        field16 = MEMORY.getInt(address + 100);
+        field17 = MEMORY.getInt(address + 104);
+        field18 = MEMORY.getInt(address + 108);
+        field19 = MEMORY.getInt(address + 112);
+        field20 = MEMORY.getInt(address + 116);
         
-        field21 = UNSAFE.getDouble(address + 120);
-        field22 = UNSAFE.getDouble(address + 128);
-        field23 = UNSAFE.getDouble(address + 136);
-        field24 = UNSAFE.getDouble(address + 144);
-        field25 = UNSAFE.getDouble(address + 152);
+        field21 = MEMORY.getDouble(address + 120);
+        field22 = MEMORY.getDouble(address + 128);
+        field23 = MEMORY.getDouble(address + 136);
+        field24 = MEMORY.getDouble(address + 144);
+        field25 = MEMORY.getDouble(address + 152);
     }
 
     @Override

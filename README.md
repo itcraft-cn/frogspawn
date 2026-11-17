@@ -107,16 +107,20 @@ The last option is the default.
 |-------|-------------|------------|-----------|
 | Common + JDK8 | `src/main/java` + `src/main/java8` | 52 (Java 8) | JDK8+ |
 | JDK9+ overlay | `src/main/java9` | 53 (Java 9) | JDK9+ |
+| JDK24+ overlay | `src/main/java24` | 68 (Java 24) | JDK24+ |
 
 - `src/main/java`: only JDK-independent code.
 - `src/main/java8`: JDK8-specific implementation, including `sun.misc.Unsafe`, `sun.misc.Contended`
   and `RawMemoryUtil`.
 - `src/main/java9`: JDK9+ replacements, including `jdk.internal.vm.annotation.Contended` and a
   `VarHandle`-based `MemoryAccessImpl`.
+- `src/main/java24`: JDK24+ replacements using `java.lang.foreign.MemorySegment`; no `sun.misc.*`.
 
-Platform access goes through `cn.itcraft.frogspawn.platform.MemoryAccess`. Raw allocation still
-reuses the JDK8 `RawMemoryUtil` because JDK9-21 has no public raw-address allocation API; a future
-`java22` overlay can switch to `java.lang.foreign`.
+Platform access goes through `cn.itcraft.frogspawn.platform.MemoryAccess`:
+- JDK8 uses `sun.misc.Unsafe`.
+- JDK9-23 uses `VarHandle` for array access and `RawMemoryUtil` for raw memory.
+- JDK24+ uses `MemorySegment` for allocation/free, primitive access and `copyFrom`, with
+  `VarHandle` for array access. No `sun.misc.Unsafe` is loaded by the JDK24+ implementation.
 
 Build a full MR-JAR with both JDK8 and JDK9+:
 

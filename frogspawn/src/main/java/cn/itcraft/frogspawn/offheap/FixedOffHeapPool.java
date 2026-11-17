@@ -6,6 +6,7 @@ import cn.itcraft.frogspawn.platform.MemoryAccess;
 import cn.itcraft.frogspawn.platform.PlatformMemory;
 
 import java.lang.reflect.Array;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -16,7 +17,8 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * @author Helly Guo
  * Created on 2026-03-24
  */
-public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMemoryPool<T> {
+public class FixedOffHeapPool<T extends FixedOffHeapObject>
+        implements ObjectsMemoryPool<T>, AutoCloseable {
 
     private static final MemoryAccess MEMORY = PlatformMemory.ACCESS;
     private static final int CACHE_SIZE = 64;
@@ -25,6 +27,8 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
 
     private final T[] objects;
     private final int capacity;
+    private final long memoryBlock;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
     private final AtomicIntegerArray states;
     private final Object stackLock = new Object();
 
@@ -51,7 +55,7 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
         }
         this.capacity = capacity;
         this.states = new AtomicIntegerArray(capacity);
-        long memoryBlock = MEMORY.allocateMemory((long) capacity * objectSize);
+        this.memoryBlock = MEMORY.allocateMemory((long) capacity * objectSize);
 
         T sample = creator.create();
         sample.index(0);
@@ -76,6 +80,7 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
 
     @Override
     public T fetch() {
+        checkOpen();
         LocalCache cache = localCache.get();
 
         if (cache.count > 0) {
@@ -112,6 +117,7 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
 
     @Override
     public void release(T obj) {
+        checkOpen();
         if (obj == null) {
             return;
         }
@@ -160,5 +166,18 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
 
     public int getAvailableCount() {
         return stackTop.get();
+    }
+
+    @Override
+    public void close() {
+        if (closed.compareAndSet(false, true)) {
+            MEMORY.freeMemory(memoryBlock);
+        }
+    }
+
+    private void checkOpen() {
+        if (closed.get()) {
+            throw new IllegalStateException("FixedOffHeapPool is closed");
+        }
     }
 }

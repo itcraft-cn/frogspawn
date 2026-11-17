@@ -20,13 +20,11 @@ import cn.itcraft.frogspawn.util.UnsafeUtil;
 import sun.misc.Unsafe;
 
 /**
- * JDK8 原生内存分配器
- * JDK8 raw memory allocator
+ * JDK8-23 原生内存访问实现
+ * JDK8-23 raw memory access implementation
  *
- * JDK9-21 没有公开的原始地址分配 API，因此 JDK9+ 覆盖层复用本类；
- * 后续可用 java.lang.foreign 的 java22 overlay 替换。
- * JDK9-21 has no public raw-address allocation API, so the JDK9+ overlay
- * reuses this class; a future java22 overlay can switch to java.lang.foreign.
+ * JDK24+ 请使用基于 MemorySegment 的覆盖实现。
+ * For JDK24+ use the MemorySegment based overlay.
  *
  * @author Helly Guo
  */
@@ -43,5 +41,69 @@ final class RawMemoryUtil {
 
     static void free(long address) {
         UNSAFE.freeMemory(address);
+    }
+
+    static byte getByte(long address) {
+        return UNSAFE.getByte(address);
+    }
+
+    static void putByte(long address, byte value) {
+        UNSAFE.putByte(address, value);
+    }
+
+    static short getShort(long address) {
+        return UNSAFE.getShort(address);
+    }
+
+    static void putShort(long address, short value) {
+        UNSAFE.putShort(address, value);
+    }
+
+    static char getChar(long address) {
+        return UNSAFE.getChar(address);
+    }
+
+    static void putChar(long address, char value) {
+        UNSAFE.putChar(address, value);
+    }
+
+    static int getInt(long address) {
+        return UNSAFE.getInt(address);
+    }
+
+    static void putInt(long address, int value) {
+        UNSAFE.putInt(address, value);
+    }
+
+    static long getLong(long address) {
+        return UNSAFE.getLong(address);
+    }
+
+    static void putLong(long address, long value) {
+        UNSAFE.putLong(address, value);
+    }
+
+    static float getFloat(long address) {
+        return UNSAFE.getFloat(address);
+    }
+
+    static void putFloat(long address, float value) {
+        UNSAFE.putFloat(address, value);
+    }
+
+    static double getDouble(long address) {
+        return UNSAFE.getDouble(address);
+    }
+
+    static void putDouble(long address, double value) {
+        UNSAFE.putDouble(address, value);
+    }
+
+    static void setMemory(long address, long bytes, byte value) {
+        UNSAFE.setMemory(address, bytes, value);
+    }
+
+    static void copyMemory(long srcAddress, long dstAddress, long bytes) {
+        UNSAFE.copyMemory(srcAddress, dstAddress, bytes);
     }
 }

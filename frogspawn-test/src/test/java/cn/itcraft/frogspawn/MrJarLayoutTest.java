@@ -17,6 +17,7 @@
 package cn.itcraft.frogspawn;
 
 import cn.itcraft.frogspawn.misc.PaddedAtomicLong;
+import cn.itcraft.frogspawn.platform.PlatformMemory;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,6 +57,18 @@ class MrJarLayoutTest {
      * JDK9 主版本号
      */
     private static final int JDK9_VERSION = 9;
+    /**
+     * JDK24 主版本号
+     */
+    private static final int JDK24_VERSION = 24;
+    /**
+     * JDK24+ 覆盖层路径片段
+     */
+    private static final String VERSIONS_24 = "META-INF/versions/24";
+    /**
+     * 平台内存实现类资源
+     */
+    private static final String MEMORY_CLASS_RESOURCE = "MemoryAccessImpl.class";
 
     @Test
     void shouldLoadVersionedClassOnJdk9OrAbove() {
@@ -73,6 +86,22 @@ class MrJarLayoutTest {
         } else {
             assertFalse(location.contains(VERSIONS_9), location);
             assertEquals(JDK8_CONTENDED, annotation);
+        }
+    }
+
+    @Test
+    void shouldLoadPlatformMemoryFromExpectedLayer() {
+        String location = PlatformMemory.ACCESS.getClass()
+                .getResource(MEMORY_CLASS_RESOURCE).toString();
+        assumeTrue(location.startsWith("jar:"), "not loaded from a jar: " + location);
+
+        int version = currentJavaVersion();
+        if (version >= JDK24_VERSION) {
+            assertTrue(location.contains(VERSIONS_24), location);
+        } else if (version >= JDK9_VERSION) {
+            assertTrue(location.contains(VERSIONS_9), location);
+        } else {
+            assertFalse(location.contains("META-INF/versions"), location);
         }
     }
 

@@ -25,7 +25,10 @@
 - 新增 `cn.itcraft.frogspawn.platform.MemoryAccess` 平台 SPI：
   - `java8` 实现使用 `sun.misc.Unsafe`
   - `java9` 实现使用 `VarHandle` 访问数组，原生内存复用 `RawMemoryUtil`
+  - `java24` 实现完全不使用 `sun.misc.*`，使用 `java.lang.foreign.MemorySegment`
+    分配/释放内存、基本类型访问与 `copyFrom`，数组访问使用 `VarHandle`
   - `ArrayUtil`、`FixedOffHeapPool`、`OffHeapObjectsMemoryPoolImpl` 不再直接依赖 `Unsafe`
+- MR-JAR 新增 `META-INF/versions/24` 覆盖层
 - `FixedOffHeapPool` 修复池耗尽/重试失败返回未托管对象、释放兜底覆盖索引的问题：
   - 耗尽抛 `IllegalStateException`
   - 增加归属校验与 `IN_USE/AVAILABLE` 状态 CAS

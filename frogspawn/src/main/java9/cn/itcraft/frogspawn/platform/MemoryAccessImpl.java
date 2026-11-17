@@ -23,17 +23,15 @@ import java.lang.invoke.VarHandle;
  * JDK9+ 平台内存访问实现
  * JDK9+ platform memory access implementation
  *
- * 数组访问使用 VarHandle；原生内存分配/释放复用 JDK8 的 RawMemoryUtil。
- * JDK9-21 没有公开的原始地址分配 API，后续可增加 java22 overlay
- * 切换到 java.lang.foreign。
+ * 数组访问使用 VarHandle；原生内存复用 JDK8 的 AbstractRawMemoryAccess。
+ * JDK9-23 没有公开的原始地址分配 API，JDK24+ 使用 MemorySegment 覆盖实现。
  * <p>
- * Array access uses VarHandle; raw memory allocation/free reuses the JDK8
- * RawMemoryUtil implementation. JDK9-21 has no public raw-address allocation API;
- * a future java22 overlay can switch to java.lang.foreign.
+ * Array access uses VarHandle; raw memory reuses the JDK8 AbstractRawMemoryAccess.
+ * JDK9-23 has no public raw-address allocation API; JDK24+ uses the MemorySegment overlay.
  *
  * @author Helly Guo
  */
-public final class MemoryAccessImpl implements MemoryAccess {
+public final class MemoryAccessImpl extends AbstractRawMemoryAccess {
 
     private static final VarHandle OBJECT_ELEMENTS =
             MethodHandles.arrayElementVarHandle(Object[].class);
@@ -46,16 +44,6 @@ public final class MemoryAccessImpl implements MemoryAccess {
     }
 
     @Override
-    public long allocateMemory(long bytes) {
-        return RawMemoryUtil.allocate(bytes);
-    }
-
-    @Override
-    public void freeMemory(long address) {
-        RawMemoryUtil.free(address);
-    }
-
-    @Override
     public Object getArrayElement(Object[] array, int index) {
         return OBJECT_ELEMENTS.get(array, index);
     }
@@ -64,5 +52,4 @@ public final class MemoryAccessImpl implements MemoryAccess {
     public void setArrayElement(Object[] array, int index, Object value) {
         OBJECT_ELEMENTS.set(array, index, value);
     }
-
 }

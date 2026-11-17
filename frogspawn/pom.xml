@@ -152,6 +152,10 @@
                                 <copy todir="${project.build.directory}/mr-sources/META-INF/versions/9">
                                     <fileset dir="${project.basedir}/src/main/java9"/>
                                 </copy>
+                                <mkdir dir="${project.build.directory}/mr-sources/META-INF/versions/24"/>
+                                <copy todir="${project.build.directory}/mr-sources/META-INF/versions/24">
+                                    <fileset dir="${project.basedir}/src/main/java24"/>
+                                </copy>
                                 <jar destfile="${project.build.directory}/${project.build.finalName}-sources.jar"
                                      update="true">
                                     <fileset dir="${project.build.directory}/mr-sources"/>
@@ -237,6 +241,43 @@
             JDK9+ overlay: compiled only when building with JDK9 or above.
             Output goes to META-INF/versions/9 and is preferred by the JVM on JDK9+.
         -->
+        <!--
+            JDK24+ 覆盖层：使用 java.lang.foreign.MemorySegment 替代 sun.misc.Unsafe。
+            JDK24+ overlay: use java.lang.foreign.MemorySegment instead of sun.misc.Unsafe.
+        -->
+        <profile>
+            <id>mr-java24</id>
+            <activation>
+                <jdk>[24,)</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile-java24</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <compileSourceRoots>
+                                        <compileSourceRoot>${project.basedir}/src/main/java24</compileSourceRoot>
+                                    </compileSourceRoots>
+                                    <outputDirectory>${project.build.outputDirectory}/META-INF/versions/24</outputDirectory>
+                                    <release>24</release>
+                                    <compilerArgs>
+                                        <arg>-Xlint:-options</arg>
+                                    </compilerArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>mr-java9</id>
             <activation>

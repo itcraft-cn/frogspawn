@@ -22,14 +22,17 @@ package cn.itcraft.frogspawn.platform;
  *
  * 由 JDK 专有实现提供：
  * - JDK8: sun.misc.Unsafe
- * - JDK9+: VarHandle 数组访问 + Unsafe 原生内存分配
+ * - JDK9-23: VarHandle 数组访问 + RawMemoryUtil
+ * - JDK24+: java.lang.foreign.MemorySegment
  * <p>
  * Implemented per JDK:
  * - JDK8: sun.misc.Unsafe
- * - JDK9+: VarHandle array access + Unsafe raw memory allocation
+ * - JDK9-23: VarHandle array access + RawMemoryUtil
+ * - JDK24+: java.lang.foreign.MemorySegment
  *
  * @author Helly Guo
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public interface MemoryAccess {
 
     /**
@@ -76,4 +79,52 @@ public interface MemoryAccess {
      * @param value 元素值 / element value
      */
     void setArrayElement(Object[] array, int index, Object value);
+
+    byte getByte(long address);
+
+    void putByte(long address, byte value);
+
+    short getShort(long address);
+
+    void putShort(long address, short value);
+
+    char getChar(long address);
+
+    void putChar(long address, char value);
+
+    int getInt(long address);
+
+    void putInt(long address, int value);
+
+    long getLong(long address);
+
+    void putLong(long address, long value);
+
+    float getFloat(long address);
+
+    void putFloat(long address, float value);
+
+    double getDouble(long address);
+
+    void putDouble(long address, double value);
+
+    /**
+     * 将指定范围内存填充为指定字节
+     * Fill the given memory range with a byte value
+     *
+     * @param address 起始地址 / start address
+     * @param bytes   字节数 / byte count
+     * @param value   填充值 / fill value
+     */
+    void setMemory(long address, long bytes, byte value);
+
+    /**
+     * 拷贝原生内存
+     * Copy native memory
+     *
+     * @param srcAddress 源地址 / source address
+     * @param dstAddress 目标地址 / destination address
+     * @param bytes      字节数 / byte count
+     */
+    void copyMemory(long srcAddress, long dstAddress, long bytes);
 }

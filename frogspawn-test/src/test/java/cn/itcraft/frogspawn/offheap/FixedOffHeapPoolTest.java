@@ -16,8 +16,6 @@
  */
 package cn.itcraft.frogspawn.offheap;
 
-import cn.itcraft.frogspawn.ObjectsMemoryPool;
-import cn.itcraft.frogspawn.ObjectsMemoryPoolFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -34,47 +32,50 @@ class FixedOffHeapPoolTest {
     private static final int CAPACITY = 2;
     private static final int OBJECT_SIZE = 64;
 
-    private ObjectsMemoryPool<SimpleFixedObject> newPool() {
-        return ObjectsMemoryPoolFactory.newFixedOffHeapPool(
-                SimpleFixedObject::new, CAPACITY, OBJECT_SIZE);
+    private FixedOffHeapPool<SimpleFixedObject> newPool() {
+        return new FixedOffHeapPool<>(SimpleFixedObject::new, CAPACITY, OBJECT_SIZE);
     }
 
     @Test
     void shouldRejectFetchWhenExhausted() {
-        ObjectsMemoryPool<SimpleFixedObject> pool = newPool();
-        pool.fetch();
-        pool.fetch();
+        try (FixedOffHeapPool<SimpleFixedObject> pool = newPool()) {
+            pool.fetch();
+            pool.fetch();
 
-        assertThrows(IllegalStateException.class, pool::fetch);
+            assertThrows(IllegalStateException.class, pool::fetch);
+        }
     }
 
     @Test
     void shouldAllowFetchAfterRelease() {
-        ObjectsMemoryPool<SimpleFixedObject> pool = newPool();
-        SimpleFixedObject first = pool.fetch();
-        SimpleFixedObject second = pool.fetch();
+        try (FixedOffHeapPool<SimpleFixedObject> pool = newPool()) {
+            SimpleFixedObject first = pool.fetch();
+            SimpleFixedObject second = pool.fetch();
 
-        pool.release(first);
+            pool.release(first);
 
-        assertSame(first, pool.fetch());
-        pool.release(second);
+            assertSame(first, pool.fetch());
+            pool.release(second);
+        }
     }
 
     @Test
     void shouldRejectDoubleRelease() {
-        ObjectsMemoryPool<SimpleFixedObject> pool = newPool();
-        SimpleFixedObject obj = pool.fetch();
-        pool.release(obj);
+        try (FixedOffHeapPool<SimpleFixedObject> pool = newPool()) {
+            SimpleFixedObject obj = pool.fetch();
+            pool.release(obj);
 
-        assertThrows(IllegalArgumentException.class, () -> pool.release(obj));
+            assertThrows(IllegalArgumentException.class, () -> pool.release(obj));
+        }
     }
 
     @Test
     void shouldRejectForeignObject() {
-        ObjectsMemoryPool<SimpleFixedObject> pool = newPool();
-        SimpleFixedObject foreign = new SimpleFixedObject();
-        foreign.index(0);
+        try (FixedOffHeapPool<SimpleFixedObject> pool = newPool()) {
+            SimpleFixedObject foreign = new SimpleFixedObject();
+            foreign.index(0);
 
-        assertThrows(IllegalArgumentException.class, () -> pool.release(foreign));
+            assertThrows(IllegalArgumentException.class, () -> pool.release(foreign));
+        }
     }
 }
