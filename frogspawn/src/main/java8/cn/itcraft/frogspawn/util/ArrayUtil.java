@@ -148,11 +148,11 @@ public final class ArrayUtil {
      *
      * @param value 输入的正整数，必须非负。The input value, must be non-negative.
      * @return 不小于输入值的最小2的幂次方。The smallest power of two &gt; the input value.
-     * @throws RuntimeException 当输入值为负数时抛出。Thrown if the input value is negative.
+     * @throws IllegalArgumentException 当输入值为负数时抛出。Thrown if the input value is negative.
      */
     public static int findNextPositivePowerOfTwo(int value) {
         if (value < 0) {
-            throw new RuntimeException("must be positive");
+            throw new IllegalArgumentException("must be positive");
         }
         // 通过位运算快速计算最小2的幂
         // Efficient bitwise calculation for the smallest power of two

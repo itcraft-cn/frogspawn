@@ -37,7 +37,7 @@ public enum FetchFailStrategy implements FailRestorer {
     NOT_AVAILABLE(new FailRestorer() {
         @Override
         public <T extends Resettable> T failover(ObjectCreator<T> creator) {
-            throw new RuntimeException("not available");
+            throw new IllegalStateException("not available");
         }
     }),
 

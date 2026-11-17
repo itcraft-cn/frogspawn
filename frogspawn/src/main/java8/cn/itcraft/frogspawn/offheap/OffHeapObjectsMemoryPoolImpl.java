@@ -61,7 +61,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
         this.memoryPoolAddress = UNSAFE.allocateMemory(MEMORY_POOL_SIZE);
         this.freeSlots = new long[SLOT_COUNT];
         for (int i = 0; i < SLOT_COUNT; i++) {
-            freeSlots[i] = memoryPoolAddress + i * SLOT_SIZE;
+            freeSlots[i] = memoryPoolAddress + (long) i * SLOT_SIZE;
         }
         freeSlotCount.set(SLOT_COUNT);
     }
@@ -102,7 +102,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
                     allocateArrayMemory(obj);
                 } catch (Exception e) {
                     cleanupOnError(obj, existingAddress, fromCache);
-                    throw new RuntimeException("Failed to allocate array memory", e);
+                    throw new IllegalStateException("Failed to allocate array memory", e);
                 }
             }
             // 条件写入内存
@@ -128,7 +128,7 @@ public class OffHeapObjectsMemoryPoolImpl<T extends PrimitiveStructure> implemen
             return obj;
         } catch (Exception e) {
             cleanupOnError(obj, objectAddress, fromCache);
-            throw new RuntimeException("Failed to create off-heap object", e);
+            throw new IllegalStateException("Failed to create off-heap object", e);
         }
     }
 

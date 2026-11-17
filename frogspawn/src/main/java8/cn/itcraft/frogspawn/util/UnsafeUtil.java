@@ -65,7 +65,7 @@ public final class UnsafeUtil {
         } catch (Exception e) {
             // 将检查异常转换为运行时异常
             // Convert checked exception to runtime exception
-            throw new RuntimeException("Unable to load unsafe", e);
+            throw new IllegalStateException("Unable to load unsafe", e);
         }
     }
 

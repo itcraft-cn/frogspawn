@@ -26,7 +26,7 @@ final class ClassChecker {
         if (Arrays.stream(clazz.getGenericInterfaces())
                   .noneMatch(t -> expectedName.equals(t.getTypeName()))) {
             LOGGER.warn("{} is not implemented {}", clazz, expected);
-            throw new RuntimeException("not supported");
+            throw new UnsupportedOperationException("not supported");
         }
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields) {
@@ -48,11 +48,11 @@ final class ClassChecker {
                 LOGGER.debug("{} is primitive array, {}", field, elementType);
             } else {
                 LOGGER.warn("{} is array, but not support: {}", field, elementType);
-                throw new RuntimeException("not supported");
+                throw new UnsupportedOperationException("not supported");
             }
         } else {
             LOGGER.warn("{} is not support: {}", field, fieldType);
-            throw new RuntimeException("not supported");
+            throw new UnsupportedOperationException("not supported");
         }
     }
 }

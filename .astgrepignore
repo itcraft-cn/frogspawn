@@ -1,0 +1,34 @@
+# ast-grep 误报抑制
+# 规则库: code-checklist
+# 说明: 仅在具备明确设计理由时使用；优先通过规则 constraints 修正误报。
+
+# 生产代码：有意的无锁 CAS 重试 / 阻塞式取对象循环
+# - FetchHelper.loopFetchData: MUST_FETCH_IN_POOL 策略要求阻塞直到取到对象
+# - OffHeapObjectsMemoryPoolImpl: 标准 CAS 重试循环，冲突时继续，无异常语义
+- rule: infinite-loop-while-true
+  paths:
+    - "frogspawn/src/main/java/cn/itcraft/frogspawn/local/FetchHelper.java"
+    - "frogspawn/src/main/java8/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
+    - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/misc/MainHelper.java"
+- rule: long-loop-without-try-catch
+  paths:
+    - "frogspawn/src/main/java/cn/itcraft/frogspawn/local/FetchHelper.java"
+    - "frogspawn/src/main/java8/cn/itcraft/frogspawn/offheap/OffHeapObjectsMemoryPoolImpl.java"
+
+# 测试 / 基准代码：输出、交互式等待与测试辅助属于预期行为
+- rule: system-out-print
+  paths:
+    - "frogspawn-test/src/test/java/**"
+- rule: empty-catch-block
+  paths:
+    - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/misc/MainHelper.java"
+    - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/HeapObjectsMemoryPoolTest.java"
+- rule: fqn-usage
+  paths:
+    - "frogspawn-test/src/test/java/**"
+- rule: no-wildcard-import
+  paths:
+    - "frogspawn-test/src/test/java/**"
+- rule: unnamed-thread
+  paths:
+    - "frogspawn-test/src/test/java/cn/itcraft/frogspawn/DemoThreadFactory.java"

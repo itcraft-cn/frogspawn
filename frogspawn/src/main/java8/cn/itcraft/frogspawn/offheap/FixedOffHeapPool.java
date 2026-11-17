@@ -22,8 +22,6 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
     private final ObjectCreator<T> creator;
     private final T[] objects;
     private final int capacity;
-    private final int objectSize;
-    private final long memoryBlock;
 
     private final AtomicInteger stackTop = new AtomicInteger(0);
     private final int[] stack;
@@ -39,8 +37,7 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
     public FixedOffHeapPool(ObjectCreator<T> creator, int capacity, int objectSize) {
         this.creator = creator;
         this.capacity = capacity;
-        this.objectSize = objectSize;
-        this.memoryBlock = UNSAFE.allocateMemory((long) capacity * objectSize);
+        long memoryBlock = UNSAFE.allocateMemory((long) capacity * objectSize);
 
         T sample = creator.create();
         sample.index(0);
@@ -116,8 +113,10 @@ public class FixedOffHeapPool<T extends FixedOffHeapObject> implements ObjectsMe
 
     @Override
     public void release(T obj) {
-        if (obj == null) return;
-        
+        if (obj == null) {
+            return;
+        }
+
         obj.reset();
 
         LocalCache cache = localCache.get();

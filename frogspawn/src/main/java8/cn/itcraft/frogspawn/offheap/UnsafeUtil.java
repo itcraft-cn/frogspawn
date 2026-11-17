@@ -23,7 +23,7 @@ public final class UnsafeUtil {
 
             UNSAFE = AccessController.doPrivileged(action);
         } catch (Exception e) {
-            throw new RuntimeException("Unable to load unsafe", e);
+            throw new IllegalStateException("Unable to load unsafe", e);
         }
     }
 

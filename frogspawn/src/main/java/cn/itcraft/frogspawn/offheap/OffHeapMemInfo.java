@@ -41,8 +41,7 @@ public class OffHeapMemInfo {
     public void appendField(FieldType fieldType, int size, int arrayLength) {
         // 计算对齐后的偏移量
         int alignedOffset = alignUp(currentOffset, ALIGNMENT);
-        int padding = alignedOffset - currentOffset;
-        
+
         fieldTypes.add(fieldType);
         fieldSizes.add(size);
         fieldOffsets.add(alignedOffset);

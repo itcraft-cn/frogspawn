@@ -14,6 +14,13 @@
 - 修复 JDK9+ 无法编译的问题（`sun.misc.Contended` 在 JDK9+ 已迁移）
 - `frogspawn-test` 依赖版本对齐到 `0.7-dev`
 
+### 修复与清理
+- 修复堆池线程本地缓存路径未调用 `reset()` 的释放语义缺陷
+- 删除与 `ClassChecker` 重复且无引用的 `ClassUtil`
+- 修复未使用字段/局部变量、整型乘法溢出风险与裸异常类型
+- 新增 `.astgrepignore` 登记有意 CAS/阻塞循环及测试输出的误报
+- 新增 `LocalObjectsMemoryPoolResetTest` 回归测试
+
 ## v0.6
 
 ### 性能优化

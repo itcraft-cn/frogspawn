@@ -116,7 +116,7 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
             array[i] = wrapped;
         }
         this.creator = creator;
-        if (FetchStrategy.MUST_FETCH_IN_POOL.equals(poolStrategy.getFetchStrategy())) {
+        if (FetchStrategy.MUST_FETCH_IN_POOL == poolStrategy.getFetchStrategy()) {
             this.fetcher = this::fetchDataWithLoop;
             this.fetchFailStrategy = null;
         } else {
@@ -182,6 +182,9 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
      */
     @Override
     public void release(T used) {
+        // 入池前必须重置，线程本地缓存路径同样适用
+        // Reset before pooling, including the thread-local cache path
+        used.reset();
         if (localQueue.get().release(used)) {
             // 成功释放后执行后续处理 / Perform post-release processing
             wrapRelease(used);
@@ -195,8 +198,6 @@ public class LocalObjectsMemoryPoolImpl<T extends Resettable> implements Objects
      * @param used 已释放的对象 / The released object
      */
     private void wrapRelease(T used) {
-        // 重置对象状态 / Reset object state
-        used.reset();
         int id = used.getMarkedId();
         if (id >= 0) {
             // 原子标记对象为未使用状态
