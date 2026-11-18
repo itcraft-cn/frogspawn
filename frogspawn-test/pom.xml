@@ -5,7 +5,7 @@
 
     <groupId>cn.itcraft</groupId>
     <artifactId>frogspawn-test</artifactId>
-    <version>0.7-dev</version><!-- managed by updgitver -->
+    <version>0.7.0</version><!-- managed by updgitver -->
 
     <name>frogspawn-test</name>
     <description>A java object pool, focus on gc-friendry/low-latency.</description>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>cn.itcraft</groupId>
             <artifactId>frogspawn</artifactId>
-            <version>0.7-dev</version><!-- managed by updgitver -->
+            <version>0.7.0</version><!-- managed by updgitver -->
         </dependency>
         <!-- log -->
         <!-- slf4j -->
