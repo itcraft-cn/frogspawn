@@ -2,7 +2,7 @@
 
 [中文版本](CHANGELOG.md)
 
-## v0.7 (in development)
+## v0.7.0 (2026-11-18)
 
 ### Build
 - Reworked into a **Multi-Release JAR** based on JDK8:
@@ -16,7 +16,7 @@
   - `src/main/java9`: JDK9+ overlay (`jdk.internal.vm.annotation.Contended`, `VarHandle`)
   - `src/main/java24`: JDK24+ overlay (`java.lang.foreign.MemorySegment`, no `sun.misc.*`)
 - Fixed the JDK9+ compile failure caused by `sun.misc.Contended`
-- Aligned `frogspawn-test` dependency to `0.7-dev`
+- Aligned `frogspawn-test` dependency to `0.7.0`
 
 ### Fixes and cleanup
 - Fixed the release semantics bug where the thread-local cache path skipped `reset()`

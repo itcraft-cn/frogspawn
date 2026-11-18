@@ -16,13 +16,13 @@ JDK24+ 运行时会自动加载 `META-INF/versions/24`，原生内存由 `java.l
 
 ## 2. 依赖与构建
 
-Maven 坐标（当前开发版本）：
+Maven 坐标（0.7.0）：
 
 ```xml
 <dependency>
     <groupId>cn.itcraft</groupId>
     <artifactId>frogspawn</artifactId>
-    <version>0.7-dev</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 

@@ -2,7 +2,7 @@
 
 [English version](CHANGELOG_en.md)
 
-## v0.7 (开发中)
+## v0.7.0 (2026-11-18)
 
 ### 构建
 - 改造为基于 JDK8 的 **Multi-Release JAR**：
@@ -14,7 +14,7 @@
   - `src/main/java8`：`sun.misc.Unsafe`、`sun.misc.Contended` 等 JDK8 专有实现
   - `src/main/java9`：`jdk.internal.vm.annotation.Contended` 等 JDK9+ 覆盖实现
 - 修复 JDK9+ 无法编译的问题（`sun.misc.Contended` 在 JDK9+ 已迁移）
-- `frogspawn-test` 依赖版本对齐到 `0.7-dev`
+- `frogspawn-test` 依赖版本对齐到 `0.7.0`
 
 ### 修复与清理
 - 修复堆池线程本地缓存路径未调用 `reset()` 的释放语义缺陷

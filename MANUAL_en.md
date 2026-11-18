@@ -16,13 +16,13 @@ On JDK24+ the runtime loads `META-INF/versions/24`; native memory is managed by 
 
 ## 2. Dependency and build
 
-Maven coordinates (current development version):
+Maven coordinates (0.7.0):
 
 ```xml
 <dependency>
     <groupId>cn.itcraft</groupId>
     <artifactId>frogspawn</artifactId>
-    <version>0.7-dev</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 

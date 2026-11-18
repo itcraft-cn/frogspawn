@@ -108,7 +108,7 @@ mvn -f frogspawn/pom.xml clean package -Dmr.base.jdk.home=/path/to/jdk8
 
 ### 结论
 
-- **FixedOffHeapPool**: 性能最优 - 执行最快，零 GC，通过 `UNSAFE.setMemory` 高效 native reset
+- **FixedOffHeapPool**: 性能最优 - 执行最快，零 GC，原生 reset 走 `MemoryAccess.setMemory`（JDK8-23 为 `UNSAFE.setMemory`，JDK24+ 为 `MemorySegment.fill`）
 - **HeapPool**: 大对象 reset (数组清零) 开销 > JVM 新对象零值化
 - **new**: 中等性能，压力下可能触发 GC
 
