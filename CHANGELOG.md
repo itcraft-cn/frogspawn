@@ -14,6 +14,7 @@
   - `src/main/java8`：`sun.misc.Unsafe`、`sun.misc.Contended` 等 JDK8 专有实现
   - `src/main/java9`：`jdk.internal.vm.annotation.Contended` 等 JDK9+ 覆盖实现
 - 修复 JDK9+ 无法编译的问题（`sun.misc.Contended` 在 JDK9+ 已迁移）
+- 升级 `central-publishing-maven-plugin` `0.7.0` → `0.12.0`，兼容 Maven Central API 的 `warnings` 字段
 - `frogspawn-test` 依赖版本对齐到 `0.7.0`
 
 ### 修复与清理

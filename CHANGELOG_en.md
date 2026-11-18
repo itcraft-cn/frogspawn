@@ -16,6 +16,7 @@
   - `src/main/java9`: JDK9+ overlay (`jdk.internal.vm.annotation.Contended`, `VarHandle`)
   - `src/main/java24`: JDK24+ overlay (`java.lang.foreign.MemorySegment`, no `sun.misc.*`)
 - Fixed the JDK9+ compile failure caused by `sun.misc.Contended`
+- Upgraded `central-publishing-maven-plugin` from `0.7.0` to `0.12.0` to support the Maven Central API `warnings` field
 - Aligned `frogspawn-test` dependency to `0.7.0`
 
 ### Fixes and cleanup
